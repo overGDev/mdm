@@ -61,7 +61,7 @@ impl TryFrom<RawNodeConfig> for NodeConfig {
         let alias = raw.alias.filter(|s| !s.trim().is_empty());
         let custom_id = raw.custom_id.filter(|s| !s.trim().is_empty());
         let has_intro = raw.has_intro.unwrap_or(false);
-        let skip_after = raw.skip_after.unwrap_or(false);
+        let skip_after = raw.skip_after.unwrap_or(true);
 
         let mut children = Vec::new();
         for raw_child in raw.children.unwrap_or_default() {

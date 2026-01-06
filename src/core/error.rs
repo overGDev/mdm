@@ -17,7 +17,7 @@ pub enum MDMError {
         path: std::path::PathBuf,
     },
 
-    #[error("Command aborted: '.mdm.conf' file not found.\nRun 'mdm init' first.")]
+    #[error("Command aborted: '.mdm.conf' file not found\nRun 'mdm init' first.")]
     MDMConfigNotFound,
 
     #[error("Command aborted: {reason}\n{help}")]
@@ -25,13 +25,4 @@ pub enum MDMError {
 
     #[error("Error: {0}")]
     Other(String),
-}
-
-impl MDMError {
-    pub fn abort(reason: &str, help: &str) -> MDMError {
-        return MDMError::InvalidCommandState {
-            reason: reason.into(),
-            help: help.into(),
-        };
-    }
 }
