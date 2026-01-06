@@ -1,8 +1,8 @@
 use clap::ArgMatches;
 
-use crate::core::model::DocumentConfig;
+use crate::core::model::PathsConfig;
 
 pub struct CommandCtx {
     pub args: ArgMatches,
-    pub config: Option<DocumentConfig>,
+    pub paths_config: Option<PathsConfig>,
 }
