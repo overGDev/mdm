@@ -5,27 +5,26 @@ use clap::{ArgMatches, Command};
 use crate::{
     core::{
         error::MDMError,
-        model::{CliCommand, DocumentConfig},
+        model::{CliCommand, PathsConfig},
     },
     io::parse::document_config_from_yaml,
 };
 
-const SECTIONS_FOLDER_DEFAULT_NAME: &str = "sections";
-pub const RESERVED_FOLDERS: [&str; 1] = [
-    SECTIONS_FOLDER_DEFAULT_NAME,
-];
-
-const CONF_FILE_DEFAULT_NAME: &str = ".mdm.conf";
-const SCHEMA_FILE_DEFAULT_NAME: &str = "schema.yaml";
-const OUTPUT_FILE_DEFAULT_NAME: &str = "document.md";
-const CONF_FILE_SAMPLE: &str = include_str!("../samples/.mdm.conf");
+const SCHEMA_FILE_NAME: &str = "schema.yaml";
+const PATHS_FILE_NAME: &str = "paths.yaml";
+const VARS_FILE_NAME: &str = "vars.yaml";
 const SCHEMA_FILE_SAMPLE: &str = include_str!("../samples/schema.yaml");
+const PATHS_FILE_SAMPLE: &str = include_str!("../samples/paths.yaml");
+const VARS_FILE_SAMPLE: &str = include_str!("../samples/vars.yaml");
 
-pub const RESERVED_FILES: [(&str, &str); 3] = [
-    (CONF_FILE_DEFAULT_NAME, CONF_FILE_SAMPLE),
-    (SCHEMA_FILE_DEFAULT_NAME, SCHEMA_FILE_SAMPLE),
-    (OUTPUT_FILE_DEFAULT_NAME, ""),
+pub const MDM_CONF_FOLDER_NAME: &str = "mdm";
+pub const MDM_CONF_FILES: [(&str, &str); 3] = [
+    (SCHEMA_FILE_NAME, SCHEMA_FILE_SAMPLE),
+    (PATHS_FILE_NAME, PATHS_FILE_SAMPLE),
+    (VARS_FILE_NAME, VARS_FILE_SAMPLE),
 ];
+
+pub const MDM_GIT_IGNORE_SAMPLE: &str = include_str!("../samples/.gitignore");
 
 pub fn subcommand_from_input(
     app: Command,
@@ -50,7 +49,7 @@ pub fn subcommand_from_input(
 fn find_config_root() -> Option<PathBuf> {
     let mut current_dir = env::current_dir().ok()?;
     loop {
-        let config_path = current_dir.join(CONF_FILE_DEFAULT_NAME);
+        let config_path = current_dir.join(PATHS_FILE_NAME);
         if config_path.exists() {
             return Some(current_dir);
         }
@@ -62,18 +61,15 @@ fn find_config_root() -> Option<PathBuf> {
     None
 }
 
-pub fn load_config() -> Result<DocumentConfig, MDMError> {
+pub fn load_config() -> Result<PathsConfig, MDMError> {
     let Some(conf_root) = find_config_root() else {
         return Err(MDMError::MDMConfigNotFound)
     };
-    let content = read_to_string(conf_root.join(CONF_FILE_DEFAULT_NAME)).map_err(|e| MDMError::IO {
+    let content = read_to_string(conf_root.join(PATHS_FILE_NAME)).map_err(|e| MDMError::IO {
         source: e,
-        path: CONF_FILE_DEFAULT_NAME.into(),
+        path: PATHS_FILE_NAME.into(),
     })?;
-    let raw_config = document_config_from_yaml(&content)?;
-    let config: DocumentConfig = raw_config
-        .try_into()
-        .map_err(|e: &str| MDMError::Other(e.to_string()))?;
+    let config = document_config_from_yaml(&content)?;
 
     Ok(config)
 }

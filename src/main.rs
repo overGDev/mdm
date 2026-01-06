@@ -33,7 +33,7 @@ fn main() {
         })
         .unwrap();
 
-    let config = if subcommand.requires_config() {
+    let paths_config = if subcommand.requires_paths() {
         let loaded = load_config()
             .map_err(|e| {
                 eprintln!("{}", e);
@@ -45,7 +45,7 @@ fn main() {
         None
     };
 
-    match subcommand.execute(CommandCtx { args, config }) {
+    match subcommand.execute(CommandCtx { args, paths_config }) {
         Err(e) => {
             eprintln!("{}", e);
             std::process::exit(1);

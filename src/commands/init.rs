@@ -1,9 +1,10 @@
 use std::path::Path;
+use std::io::Write;
 
 use clap::{Arg, ArgAction, Command, ValueHint};
 
 use crate::core::{
-    RESERVED_FILES, error::MDMError, model::{CliCommand, CommandCtx}
+    MDM_GIT_IGNORE_SAMPLE, MDM_CONF_FILES, MDM_CONF_FOLDER_NAME, error::MDMError, model::{CliCommand, CommandCtx}
 };
 
 const COMMAND_NAME: &str = "init";
@@ -20,7 +21,7 @@ impl CliCommand for InitCommand {
         COMMAND_NAME
     }
 
-    fn requires_config(&self) -> bool {
+    fn requires_paths(&self) -> bool {
         false
     }
 
@@ -48,11 +49,29 @@ impl CliCommand for InitCommand {
         let workdir = Path::new(
             ctx.args.get_one::<String>(WORKDIR_ARG_ID).unwrap()
         );
-        std::fs::create_dir_all(workdir)
+        let mdm_conf_folder = workdir.join(MDM_CONF_FOLDER_NAME);
+        std::fs::create_dir_all(&mdm_conf_folder)
             .map_err(|e| MDMError::IO {
                 source: e,
                 path: workdir.to_path_buf(),
             })?;
+
+        let force = ctx.args.get_flag(FORCE_FLAG_ID);
+        for (file_name, file_sample) in MDM_CONF_FILES.into_iter() {
+            let path = mdm_conf_folder.join(file_name);
+            if path.exists() && !force {
+                return Err(MDMError::InvalidCommandState {
+                    reason: format!("'{}' file exists already.", file_name),
+                    help: "Use --force (-f) for command to override existing files.".into()
+                });
+            }
+            
+            std::fs::write(&path, file_sample)
+                .map_err(|e| MDMError::IO {
+                    source: e,
+                    path: path,
+                })?;
+        }
 
         match std::process::Command::new("git")
             .arg("init")
@@ -80,22 +99,30 @@ impl CliCommand for InitCommand {
             }
         }
 
-        let force = ctx.args.get_flag(FORCE_FLAG_ID);
-        for (file_name, file_sample) in RESERVED_FILES.into_iter() {
-            let path = workdir.join(file_name);
-            if path.exists() && !force {
-                return Err(MDMError::InvalidCommandState {
-                    reason: format!("'{}' file exists already.", file_name),
-                    help: "Use --force (-f) for command to override existing files.".into()
-                });
-            }
-            
-            std::fs::write(&path, file_sample)
-                .map_err(|e| MDMError::IO {
-                    source: e,
-                    path: path,
-                })?;
-        }
+        let gitignore_path = workdir.join(".gitignore");
+        let is_empty = std::fs::metadata(&gitignore_path)
+            .map(|m| m.len() == 0)
+            .unwrap_or(true);
+
+        let mut file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&gitignore_path)
+            .map_err(|e| MDMError::IO {
+                source: e,
+                path: gitignore_path.clone(),
+            })?;
+
+        let content = if is_empty {
+            format!("{}", MDM_GIT_IGNORE_SAMPLE)
+        } else {
+            format!("\n# MDM\n{}", MDM_GIT_IGNORE_SAMPLE)
+        };
+
+        write!(file, "{}", content).map_err(|e| MDMError::IO {
+            source: e,
+            path: gitignore_path,
+        })?;
 
         Ok(())
     }

@@ -5,9 +5,8 @@ pub use command_ctx::CommandCtx;
 pub use cli_command::CliCommand;
 pub use validable::Validable;
 
-pub mod document_config;
-pub mod node_config;
-pub use document_config::DocumentConfig;
-pub use document_config::RawDocumentConfig;
-pub use node_config::NodeConfig;
-pub use node_config::RawNodeConfig;
+pub mod paths_config;
+pub mod schema_config;
+pub use paths_config::PathsConfig;
+pub use schema_config::SchemaConfig;
+pub use schema_config::RawSchemaConfig;
