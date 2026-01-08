@@ -1,13 +1,9 @@
 use std::process;
 
 use crate::{
-    commands::InitCommand,
-    core::{
-        load_config,
-        subcommand_from_input,
-        ext::CommandExt,
-        model::{CliCommand, CommandCtx},
-    },
+    commands::InitCommand, core::{
+        app::{config_files::load_config, get_subcommand::subcommand_from_input}, ext::CommandExt, model::{CliCommand, CommandCtx, ConfigLoader}
+    }, io::yaml_conf_loader::YamlConfLoader
 };
 
 pub mod commands;
@@ -33,8 +29,15 @@ fn main() {
         })
         .unwrap();
 
-    let paths_config = if subcommand.requires_paths() {
-        let loaded = load_config()
+    let config = if subcommand.requires_paths() {
+        let loader = YamlConfLoader::new()
+            .map(|instance| Box::new(instance) as Box<dyn ConfigLoader>)
+            .unwrap_or_else(|| {
+                eprintln!("Error: Configuration directory not found.");
+                std::process::exit(1);
+            });
+
+        let loaded = load_config(loader)
             .map_err(|e| {
                 eprintln!("{}", e);
                 std::process::exit(1);
@@ -45,7 +48,7 @@ fn main() {
         None
     };
 
-    match subcommand.execute(CommandCtx { args, paths_config }) {
+    match subcommand.execute(CommandCtx { args, config }) {
         Err(e) => {
             eprintln!("{}", e);
             std::process::exit(1);

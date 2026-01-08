@@ -12,7 +12,7 @@ pub trait CliCommand {
     fn run(&self, ctx: &CommandCtx) -> Result<(), MDMError>;
     /// Orquestrates validation before running the command's custom functionality.
     fn execute(&self, ctx: CommandCtx) -> Result<(), MDMError> {
-        if self.requires_paths() && ctx.paths_config.is_none() {
+        if self.requires_paths() && ctx.config.is_none() {
             panic!();
         }
         self.run(&ctx)?;

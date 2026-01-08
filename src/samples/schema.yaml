@@ -1,5 +1,3 @@
-# schema.yaml - MDM v2 Master Test Suite
-
 # 1. DEFAULT BEHAVIOR (LEAF)
 # Rule: Title becomes snake_case filename. 
 # Result: creates "project_scope.md"
@@ -54,11 +52,11 @@
         # Rule: Custom IDs to prevent anchor collisions.
         # Use case: Repetitive titles in different hierarchies.
         - title: "Context level"
-          id: "02-it-context" # Explicit ID (kebab-case recommended)
+          custom_id: "02-it-context" # Explicit ID (kebab-case recommended)
           skip_after: false
           
         # Rule: 'id' also undergoes normalization (spaces to hyphens/kebab-case).
         # Result: Final HTML/LaTeX ID/Label will be "02-it-container"
         - title: "Container level"
-          id: "02 IT    CONTAIner"
+          custom_id: "02 IT    CONTAIner"
           skip_after: false

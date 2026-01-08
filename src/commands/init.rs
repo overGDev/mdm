@@ -4,7 +4,7 @@ use std::io::Write;
 use clap::{Arg, ArgAction, Command, ValueHint};
 
 use crate::core::{
-    MDM_GIT_IGNORE_SAMPLE, MDM_CONF_FILES, MDM_CONF_FOLDER_NAME, error::MDMError, model::{CliCommand, CommandCtx}
+    app::{ConfigFile, MDM_CONF_FOLDER_NAME, MDM_GIT_IGNORE_SAMPLE}, error::MDMError, model::{CliCommand, CommandCtx}
 };
 
 const COMMAND_NAME: &str = "init";
@@ -57,16 +57,16 @@ impl CliCommand for InitCommand {
             })?;
 
         let force = ctx.args.get_flag(FORCE_FLAG_ID);
-        for (file_name, file_sample) in MDM_CONF_FILES.into_iter() {
-            let path = mdm_conf_folder.join(file_name);
+        for file in ConfigFile::all().into_iter() {
+            let path = mdm_conf_folder.join(file.name());
             if path.exists() && !force {
                 return Err(MDMError::InvalidCommandState {
-                    reason: format!("'{}' file exists already.", file_name),
+                    reason: format!("'{}' file exists already.", file.name()),
                     help: "Use --force (-f) for command to override existing files.".into()
                 });
             }
             
-            std::fs::write(&path, file_sample)
+            std::fs::write(&path, file.sample_content())
                 .map_err(|e| MDMError::IO {
                     source: e,
                     path: path,
