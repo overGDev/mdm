@@ -9,24 +9,27 @@ pub struct YamlConfLoader {
 }
 
 impl YamlConfLoader {
-    fn find_config_root() -> Option<PathBuf> {
-        let mut current_dir = env::current_dir().ok()?;
+    fn find_config_root() -> Result<PathBuf, MDMError> {
+        let mut current_dir = env::current_dir()
+            .map_err(|_| MDMError::Other(
+                "Failed to determine current workdir".into()
+            ))?;
         loop {
             let config_path = current_dir.join(MDM_CONF_FOLDER_NAME);
             if config_path.exists() {
-                return Some(current_dir);
+                return Ok(current_dir);
             }
             match current_dir.parent() {
                 Some(parent) => current_dir = parent.to_path_buf(),
                 None => break,
             }
         }
-        None
+        Err(MDMError::MDMConfigNotFound)
     }
 
-    pub fn new() -> Option<Self> {
+    pub fn new() -> Result<Self, MDMError> {
         let root = Self::find_config_root()?;
-        Some(Self { base_path: root })
+        Ok(Self { base_path: root })
     }
 
     pub fn config_from_file<T: DeserializeOwned>(&self, file_name: &str) -> Result<T, MDMError> {
@@ -69,7 +72,9 @@ impl ConfigLoader for YamlConfLoader {
                     .collect::<Result<Vec<SchemaSection>, MDMError>>()
             }).transpose()?;
 
+        let root = self.base_path.clone();
         Ok(MDMConfig {
+            root,
             paths,
             schema,
             vars,
