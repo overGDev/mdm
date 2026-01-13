@@ -1,7 +1,7 @@
 use std::process;
 
 use crate::{
-    commands::InitCommand, core::{
+    commands::{InitCommand, SyncCommand}, core::{
         app::{config_files::load_config, get_subcommand::subcommand_from_input}, ext::CommandExt, model::{CliCommand, CommandCtx, ConfigLoader}
     }, io::yaml_conf_loader::YamlConfLoader
 };
@@ -15,7 +15,10 @@ const APP_ABOUT: &str = "Manage documentation projects using Docs-as-Code workfl
 const APP_LONG_ABOUT: &str = "MDM is a tool designed to manage documentation within version-controlled environments with Git. It streamlines the document lifecycle by providing a modular and flexible framework for handling the iterative growth of collaborative documents, such as technical documentation of services or applications.";
 
 fn main() {
-    let subcommands: Vec<Box<dyn CliCommand>> = vec![Box::new(InitCommand {})];
+    let subcommands: Vec<Box<dyn CliCommand>> = vec![
+        Box::new(InitCommand {}),
+        Box::new(SyncCommand {}),
+    ];
     let app = clap::Command::new(APP_NAME)
         .about(APP_ABOUT)
         .long_about(APP_LONG_ABOUT)

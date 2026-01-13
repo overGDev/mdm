@@ -45,7 +45,7 @@ impl CliCommand for InitCommand {
             ]);
     }
 
-    fn run(&self, ctx: &CommandCtx) -> Result<(), MDMError> {
+    fn run(&self, ctx: CommandCtx) -> Result<(), MDMError> {
         let workdir = Path::new(
             ctx.args.get_one::<String>(WORKDIR_ARG_ID).unwrap()
         );

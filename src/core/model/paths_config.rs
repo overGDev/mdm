@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use serde::Deserialize;
 
 use crate::core::{app::MDM_CONF_FOLDER_NAME, model::Validable};
@@ -10,6 +10,14 @@ pub struct PathsConfig {
     pub sections: PathBuf,
     pub assets: PathBuf,
     pub output: PathBuf,
+}
+
+impl PathsConfig {
+    pub fn establish_root(&mut self, root: &Path) {
+        self.sections = root.join(&self.sections);
+        self.assets = root.join(&self.assets);
+        self.output = root.join(&self.output);
+    }
 }
 
 impl Validable for PathsConfig {
@@ -36,6 +44,18 @@ mod tests {
             assets: "assets".into(),
             output: "document.md".into(),
         }
+    }
+
+    #[test]
+    fn establish_root_joins_paths() {
+        let mut config = mock_paths();
+        let root_path = Path::new("/base/dir");
+
+        config.establish_root(root_path);
+
+        assert_eq!(config.sections, root_path.join("sections"));
+        assert_eq!(config.assets, root_path.join("assets"));
+        assert_eq!(config.output, root_path.join("document.md"));
     }
 
     #[test]
