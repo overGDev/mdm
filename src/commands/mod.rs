@@ -1,7 +1,7 @@
 pub mod init;
 pub mod sync;
-pub mod check_config;
+pub mod check;
 
 pub use init::InitCommand;
 pub use sync::SyncCommand;
-pub use check_config::CheckCommand;
+pub use check::CheckCommand;
