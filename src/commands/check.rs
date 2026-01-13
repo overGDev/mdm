@@ -2,6 +2,7 @@ use clap::Command;
 use crate::core::{error::MDMError, model::{CliCommand, CommandCtx}};
 
 const COMMAND_NAME: &str = "check";
+const COMMAND_ABOUT: &str = "Verify the current projects root dir.";
 
 pub struct CheckCommand;
 
@@ -16,7 +17,7 @@ impl CliCommand for CheckCommand {
 
     fn build(&self) -> Command {
         Command::new(COMMAND_NAME)
-            .about("Verify if MDM configuration is valid and readable")
+            .about(COMMAND_ABOUT)
     }
 
     fn run(&self, ctx: CommandCtx) -> Result<(), MDMError> {
