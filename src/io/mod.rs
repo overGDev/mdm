@@ -1,3 +1,1 @@
-pub mod parse;
-
-pub use parse::node_config_from_yaml;
+pub mod yaml_conf_loader;

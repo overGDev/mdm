@@ -1,31 +1,79 @@
 use serde::Deserialize;
 
-use crate::core::model::Validable;
+use crate::core::{error::MDMError, model::Validable};
 
-/// Intermediate structure representing the recursive structure in the 'mdm/schema.yaml' file.
-/// It handles optional fields and allows partial definition for better UX.
+/// Helper structure that wraps all the schema sections defined at the 'mdm/schema.yaml' file.
 #[derive(Debug, Deserialize)]
-pub struct RawSchemaConfig {
+#[serde(transparent)]
+pub struct SchemaConfig {
+    pub sections: Vec<RawSchemaSection>
+}
+
+/// Intermediate and recursive structure that handles optional fields and allows partial definition for better UX.
+#[derive(Debug, Deserialize)]
+pub struct RawSchemaSection {
     pub title: String,
     pub alias: Option<String>,
     pub custom_id: Option<String>,
     pub has_intro: Option<bool>,
     pub skip_after: Option<bool>,
-    pub children: Option<Vec<RawSchemaConfig>>,
+    pub children: Option<Vec<RawSchemaSection>>,
 }
 
 /// The canonical representation of the schema configuration.
-/// Guaranteed to be valid, with all defaults applied and optional fields resolved, simplifying application's logic.
-pub struct SchemaConfig {
+/// Guaranteed to be valid, with default values to simplify application's logic.
+#[derive(Debug)]
+pub struct SchemaSection {
     pub title: String,
     pub alias: Option<String>,
     pub custom_id: Option<String>,
     pub has_intro: bool,
     pub skip_after: bool,
-    pub children: Vec<SchemaConfig>,
+    pub children: Vec<SchemaSection>,
 }
 
-impl Validable for SchemaConfig {
+impl SchemaSection {
+    fn normalize(input: &mut String) {
+        let deunicoded = deunicode::deunicode(input).to_lowercase();
+        let mut last_was_separator = true;
+        input.clear();
+
+        for c in deunicoded.chars() {
+            if c.is_alphanumeric() {
+                input.push(c);
+                last_was_separator = false;
+            } else if !last_was_separator {
+                input.push('_');
+                last_was_separator = true;
+            }
+        }
+
+        if input.ends_with('_') {
+            input.pop();
+        }
+    }
+
+    pub fn is_leaf(&self) -> bool {
+        return self.children.is_empty()
+    }
+
+    pub fn get_fs_name(&self) -> String {
+        let mut fs_name = self.alias
+            .as_deref()
+            .unwrap_or(&self.title)
+            .to_string();
+
+        SchemaSection::normalize(&mut fs_name);
+
+        if self.is_leaf() {
+            fs_name.push_str(".md");
+        }
+
+        fs_name
+    }
+}
+
+impl Validable for SchemaSection {
     fn validate(&self) -> Result<(), &'static str> {
         if self.title.trim().is_empty() {
             return Err("Node title cannot be empty");
@@ -53,10 +101,10 @@ impl Validable for SchemaConfig {
     }
 }
 
-impl TryFrom<RawSchemaConfig> for SchemaConfig {
-    type Error = &'static str;
+impl TryFrom<RawSchemaSection> for SchemaSection {
+    type Error = MDMError;
 
-    fn try_from(raw: RawSchemaConfig) -> Result<SchemaConfig, Self::Error> {
+    fn try_from(raw: RawSchemaSection) -> Result<SchemaSection, Self::Error> {
         let title = raw.title;
         let alias = raw.alias.filter(|s| !s.trim().is_empty());
         let custom_id = raw.custom_id.filter(|s| !s.trim().is_empty());
@@ -65,11 +113,11 @@ impl TryFrom<RawSchemaConfig> for SchemaConfig {
 
         let mut children = Vec::new();
         for raw_child in raw.children.unwrap_or_default() {
-            let processed_child = SchemaConfig::try_from(raw_child)?;
+            let processed_child = SchemaSection::try_from(raw_child)?;
             children.push(processed_child);
         }
 
-        let node = SchemaConfig {
+        let node = SchemaSection {
             title,
             alias,
             custom_id,
@@ -78,7 +126,9 @@ impl TryFrom<RawSchemaConfig> for SchemaConfig {
             children,
         };
 
-        node.validate()?;
+        node.validate()
+            .map_err(|e| MDMError::Other(e.to_string()))?;
+        
         Ok(node)
     }
 }
@@ -86,8 +136,8 @@ impl TryFrom<RawSchemaConfig> for SchemaConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    fn mock_node() -> SchemaConfig {
-        SchemaConfig {
+    fn mock_node() -> SchemaSection {
+        SchemaSection {
             title: "Test".to_string(),
             alias: None,
             custom_id: None,
@@ -95,6 +145,33 @@ mod tests {
             skip_after: false,
             children: vec![],
         }
+    }
+
+    #[test]
+    fn normalization_replaces_runes() {
+        let mut node = mock_node();
+        
+        node.title = "Helló Wörld".to_string();
+        println!("{}", node.get_fs_name());
+        assert_eq!(node.get_fs_name(), "hello_world.md");
+    }
+
+    #[test]
+    fn normalization_fixes_erratic_casing() {
+        let mut node = mock_node();
+        
+        node.title = "HeLLo woRlD".to_string();
+        println!("{}", node.get_fs_name());
+        assert_eq!(node.get_fs_name(), "hello_world.md");
+    }
+
+    #[test]
+    fn normalization_fixes_erratic_spacing() {
+        let mut node = mock_node();
+        
+        node.title = "        hello   world   ".to_string();
+        println!("{}", node.get_fs_name());
+        assert_eq!(node.get_fs_name(), "hello_world.md");
     }
 
     #[test]
