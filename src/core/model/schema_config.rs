@@ -32,6 +32,47 @@ pub struct SchemaSection {
     pub children: Vec<SchemaSection>,
 }
 
+impl SchemaSection {
+    fn normalize(input: &mut String) {
+        let deunicoded = deunicode::deunicode(input).to_lowercase();
+        let mut last_was_separator = true;
+        input.clear();
+
+        for c in deunicoded.chars() {
+            if c.is_alphanumeric() {
+                input.push(c);
+                last_was_separator = false;
+            } else if !last_was_separator {
+                input.push('_');
+                last_was_separator = true;
+            }
+        }
+
+        if input.ends_with('_') {
+            input.pop();
+        }
+    }
+
+    pub fn is_leaf(&self) -> bool {
+        return self.children.is_empty()
+    }
+
+    pub fn get_fs_name(&self) -> String {
+        let mut fs_name = self.alias
+            .as_deref()
+            .unwrap_or(&self.title)
+            .to_string();
+
+        SchemaSection::normalize(&mut fs_name);
+
+        if self.is_leaf() {
+            fs_name.push_str(".md");
+        }
+
+        fs_name
+    }
+}
+
 impl Validable for SchemaSection {
     fn validate(&self) -> Result<(), &'static str> {
         if self.title.trim().is_empty() {
@@ -104,6 +145,33 @@ mod tests {
             skip_after: false,
             children: vec![],
         }
+    }
+
+    #[test]
+    fn normalization_replaces_runes() {
+        let mut node = mock_node();
+        
+        node.title = "Helló Wörld".to_string();
+        println!("{}", node.get_fs_name());
+        assert_eq!(node.get_fs_name(), "hello_world.md");
+    }
+
+    #[test]
+    fn normalization_fixes_erratic_casing() {
+        let mut node = mock_node();
+        
+        node.title = "HeLLo woRlD".to_string();
+        println!("{}", node.get_fs_name());
+        assert_eq!(node.get_fs_name(), "hello_world.md");
+    }
+
+    #[test]
+    fn normalization_fixes_erratic_spacing() {
+        let mut node = mock_node();
+        
+        node.title = "        hello   world   ".to_string();
+        println!("{}", node.get_fs_name());
+        assert_eq!(node.get_fs_name(), "hello_world.md");
     }
 
     #[test]
