@@ -7,7 +7,7 @@ use crate::core::{error::MDMError, model::{CliCommand, CommandCtx, SchemaSection
 
 const COMMAND_NAME: &str = "sync";
 const COMMAND_ABOUT: &str = "Syncronize the sections folder";
-const COMMAND_LONG_ABOUT: &str = "Sets up the necessary directory structure and generates default configuration files for the project.It creates all required reserved files in the specified workspace. If these files already exist, the command will abort to prevent data loss, unless the --force flag is used to overwrite them.";
+const COMMAND_LONG_ABOUT: &str = "Reads the contents of 'mdm/schema.yaml' and iterates over the defined structure, generating the corresponding directories and files while ensuring the usage of snake_case. If there are currently folder or files no longer present on the project's schema, these can be removed by using the --clean flag.";
 
 const CLEAN_FLAG_ID: &str = "clean";
 
