@@ -16,6 +16,63 @@ const FORCE_FLAG_ID: &str = "force";
 
 pub struct InitCommand {}
 
+impl InitCommand {
+    fn execute_git_init(workdir: &Path) -> Result<(), MDMError> {
+        match std::process::Command::new("git")
+            .arg("init")
+            .current_dir(workdir)
+            .status() {
+            Ok(exit_status) if exit_status.success() => Ok(()),
+            Ok(_) => {
+                return Err(MDMError::InvalidCommandState {
+                    reason: "Git initialization failed.".into(),
+                    help: "Ensure you have permissions to write in the target directory.".into(),
+                })
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                return Err(MDMError::InvalidCommandState {
+                    reason: "Git command not found.".into(),
+                    help: "Please install Git and ensure it is available in your PATH.".into(),
+                })
+            }
+            Err(error) => {
+                return Err(MDMError::IO {
+                    source: error,
+                    path: workdir.to_path_buf(),
+                })
+            }
+        }
+    }
+
+    fn add_to_gitignore(workdir: &Path) -> Result<(), MDMError> {
+        let gitignore_path = workdir.join(".gitignore");
+        let is_empty = std::fs::metadata(&gitignore_path)
+            .map(|m| m.len() == 0)
+            .unwrap_or(true);
+        let mut file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&gitignore_path)
+            .map_err(|e| MDMError::IO {
+                source: e,
+                path: gitignore_path.clone(),
+            })?;
+
+        let content = if is_empty {
+            format!("{}", MDM_GIT_IGNORE_SAMPLE)
+        } else {
+            format!("\n# MDM\n{}", MDM_GIT_IGNORE_SAMPLE)
+        };
+
+        write!(file, "{}", content).map_err(|e| MDMError::IO {
+            source: e,
+            path: gitignore_path,
+        })?;
+
+        Ok(())
+    }
+}
+
 impl CliCommand for InitCommand {
     fn name(&self) -> &str {
         COMMAND_NAME
@@ -73,57 +130,15 @@ impl CliCommand for InitCommand {
                 })?;
         }
 
-        match std::process::Command::new("git")
-            .arg("init")
-            .current_dir(workdir)
-            .status() 
-        {
-            Ok(exit_status) if exit_status.success() => (),
-            Ok(_) => {
-                return Err(MDMError::InvalidCommandState {
-                    reason: "Git initialization failed.".into(),
-                    help: "Ensure you have permissions to write in the target directory.".into(),
-                })
-            }
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                return Err(MDMError::InvalidCommandState {
-                    reason: "Git command not found.".into(),
-                    help: "Please install Git and ensure it is available in your PATH.".into(),
-                })
-            }
-            Err(error) => {
-                return Err(MDMError::IO {
-                    source: error,
-                    path: workdir.to_path_buf(),
-                })
-            }
+        let git_folder = workdir.join(".git");
+        let is_git_initialized = std::fs::metadata(&git_folder)
+            .map(|m| m.is_dir())
+            .unwrap_or(false);
+        
+        if !is_git_initialized {
+            InitCommand::execute_git_init(workdir)?;
         }
-
-        let gitignore_path = workdir.join(".gitignore");
-        let is_empty = std::fs::metadata(&gitignore_path)
-            .map(|m| m.len() == 0)
-            .unwrap_or(true);
-
-        let mut file = std::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&gitignore_path)
-            .map_err(|e| MDMError::IO {
-                source: e,
-                path: gitignore_path.clone(),
-            })?;
-
-        let content = if is_empty {
-            format!("{}", MDM_GIT_IGNORE_SAMPLE)
-        } else {
-            format!("\n# MDM\n{}", MDM_GIT_IGNORE_SAMPLE)
-        };
-
-        write!(file, "{}", content).map_err(|e| MDMError::IO {
-            source: e,
-            path: gitignore_path,
-        })?;
-
+        InitCommand::add_to_gitignore(workdir)?;
         Ok(())
     }
 }
