@@ -1,7 +1,5 @@
-use std::process;
-
 use crate::{
-    commands::{InitCommand, SyncCommand}, core::{
+    commands::{CheckCommand, InitCommand, SyncCommand}, core::{
         app::{config_files::load_config, get_subcommand::subcommand_from_input}, ext::CommandExt, model::{CliCommand, CommandCtx, ConfigLoader}
     }, io::yaml_conf_loader::YamlConfLoader
 };
@@ -18,34 +16,32 @@ fn main() {
     let subcommands: Vec<Box<dyn CliCommand>> = vec![
         Box::new(InitCommand {}),
         Box::new(SyncCommand {}),
+        Box::new(CheckCommand {}),
     ];
     let app = clap::Command::new(APP_NAME)
         .about(APP_ABOUT)
         .long_about(APP_LONG_ABOUT)
-        .arg_required_else_help(true)
         .load_subcommands(&subcommands);
 
     let (subcommand, args) = subcommand_from_input(app, subcommands)
-        .map_err(|e| {
+        .unwrap_or_else(|e| {
             eprintln!("{}", e);
-            process::exit(1);
-        })
-        .unwrap();
+            std::process::exit(1);
+        });
 
     let config = if subcommand.requires_paths() {
         let loader = YamlConfLoader::new()
             .map(|instance| Box::new(instance) as Box<dyn ConfigLoader>)
-            .unwrap_or_else(|| {
-                eprintln!("Error: Configuration directory not found.");
+            .unwrap_or_else(|e| {
+                eprintln!("{}", e);
                 std::process::exit(1);
             });
 
         let loaded = load_config(loader)
-            .map_err(|e| {
+            .unwrap_or_else(|e| {
                 eprintln!("{}", e);
                 std::process::exit(1);
-            })
-            .unwrap();
+            });
         Some(loaded)
     } else {
         None
