@@ -12,7 +12,7 @@ impl YamlConfLoader {
     fn find_config_root() -> Result<PathBuf, MDMError> {
         let mut current_dir = env::current_dir()
             .map_err(|_| MDMError::Other(
-                "Failed to determine current workdir".into()
+                "error: Failed to determine current workdir".into()
             ))?;
         loop {
             let config_path = current_dir.join(MDM_CONF_FOLDER_NAME);
