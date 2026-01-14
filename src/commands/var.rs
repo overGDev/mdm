@@ -1,6 +1,6 @@
 use clap::Command;
 
-use crate::{commands::ListCommand, core::{app::subcommand_from_matches::subcommand_from_matches, error::MDMError, ext::CommandExt, model::{CliCommand, CommandCtx}}};
+use crate::{commands::{ListCommand, set::SetCommand}, core::{app::subcommand_from_matches::subcommand_from_matches, error::MDMError, ext::CommandExt, model::{CliCommand, CommandCtx}}};
 
 const COMMAND_NAME: &str = "var";
 const COMMAND_ABOUT: &str = "Subcommand to access variable operations";
@@ -11,6 +11,7 @@ impl VarCommand {
     fn subcommands(&self) -> Vec<Box<dyn CliCommand>> {
         vec![
             Box::new(ListCommand {}),
+            Box::new(SetCommand {}),
         ]
     }
 }
