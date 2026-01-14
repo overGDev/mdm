@@ -1,20 +1,11 @@
-use clap::{ArgMatches, Command};
+use clap::{ArgMatches};
 
 use crate::core::{error::MDMError, model::CliCommand};
 
-pub fn subcommand_from_input(
-    app: Command,
+pub fn subcommand_from_matches(
+    matches: ArgMatches,
     subcommands: Vec<Box<dyn CliCommand>>,
 ) -> Result<(Box<dyn CliCommand>, ArgMatches), MDMError> {
-    let matches = app.try_get_matches().map_err(|e| {
-        match e.kind() {
-            clap::error::ErrorKind::InvalidSubcommand => MDMError::UnknownSubcommand,
-            _ => {
-                e.exit();
-            }
-        }
-    })?;
-
     let (subcommand_name, subcommand_args) = match matches.subcommand() {
         Some(s) => s,
         None => {

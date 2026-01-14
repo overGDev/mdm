@@ -1,5 +1,5 @@
 pub mod config_files;
-pub mod get_subcommand;
+pub mod subcommand_from_matches;
 
 pub use config_files::ConfigFile;
 pub use config_files::MDM_CONF_FOLDER_NAME;

@@ -1,6 +1,6 @@
 use crate::{
-    commands::{CheckCommand, InitCommand, SyncCommand}, core::{
-        app::{config_files::load_config, get_subcommand::subcommand_from_input}, ext::CommandExt, model::{CliCommand, CommandCtx, ConfigLoader}
+    commands::{CheckCommand, InitCommand, SyncCommand, VarCommand}, core::{
+        app::{config_files::load_config, subcommand_from_matches::subcommand_from_matches}, error::print_and_abort, ext::CommandExt, model::{CliCommand, CommandCtx, ConfigLoader}
     }, io::yaml_conf_loader::YamlConfLoader
 };
 
@@ -17,43 +17,38 @@ fn main() {
         Box::new(InitCommand {}),
         Box::new(SyncCommand {}),
         Box::new(CheckCommand {}),
+        Box::new(VarCommand {}),
     ];
     let app = clap::Command::new(APP_NAME)
         .about(APP_ABOUT)
         .long_about(APP_LONG_ABOUT)
         .load_subcommands(&subcommands);
 
-    let (subcommand, args) = subcommand_from_input(app, subcommands)
-        .unwrap_or_else(|e| {
-            eprintln!("{}", e);
-            std::process::exit(1);
-        });
+    let matches = match app.get_cli_matches() {
+        Ok(m) => m,
+        Err(e) => print_and_abort(e),
+    };
+    let (subcommand, args) = match subcommand_from_matches(matches, subcommands) {
+        Ok(s) => s,
+        Err(e) => print_and_abort(e),
+    };
 
     let config = if subcommand.requires_paths() {
-        let loader = YamlConfLoader::new()
-            .map(|instance| Box::new(instance) as Box<dyn ConfigLoader>)
-            .unwrap_or_else(|e| {
-                eprintln!("{}", e);
-                std::process::exit(1);
-            });
-
-        let loaded = load_config(loader)
-            .unwrap_or_else(|e| {
-                eprintln!("{}", e);
-                std::process::exit(1);
-            });
+        let loader = match YamlConfLoader::new() {
+            Ok(loader) => Box::new(loader) as Box<dyn ConfigLoader>,
+            Err(e) => print_and_abort(e),
+        };
+        let loaded = match load_config(loader) {
+            Ok(config) => config,
+            Err(e) => print_and_abort(e),
+        };
         Some(loaded)
     } else {
         None
     };
 
     match subcommand.execute(CommandCtx { args, config }) {
-        Err(e) => {
-            eprintln!("{}", e);
-            std::process::exit(1);
-        }
-        Ok(()) => {
-            std::process::exit(0);
-        }
+        Err(e) => print_and_abort(e),
+        Ok(()) => (),
     };
 }
