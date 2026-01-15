@@ -46,6 +46,14 @@ impl SyncCommand {
                             path: current_path.clone(),
                         })?;
                 }
+                if section.has_intro {
+                    let intro_path = current_path.join("intro.md");
+                    std::fs::write(&intro_path, "")
+                        .map_err(|e| MDMError::IO {
+                            source: e,
+                            path: intro_path.clone(),
+                        })?;
+                }
                 let children_slice = &section.children;
                 SyncCommand::sync_sections(
                     admited_paths,
