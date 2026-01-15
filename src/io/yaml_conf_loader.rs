@@ -1,5 +1,6 @@
-use std::{collections::HashMap, env, path::PathBuf};
+use std::{env, path::PathBuf};
 
+use indexmap::IndexMap;
 use serde::de::DeserializeOwned;
 
 use crate::core::{app::{ConfigFile, MDM_CONF_FOLDER_NAME}, error::MDMError, model::{ConfigLoader, MDMConfig, PathsConfig, SchemaSection, schema_config::SchemaConfig}};
@@ -12,7 +13,7 @@ impl YamlConfLoader {
     fn find_config_root() -> Result<PathBuf, MDMError> {
         let mut current_dir = env::current_dir()
             .map_err(|_| MDMError::Other(
-                "Failed to determine current workdir".into()
+                "error: Failed to determine current workdir".into()
             ))?;
         loop {
             let config_path = current_dir.join(MDM_CONF_FOLDER_NAME);
@@ -43,7 +44,7 @@ impl YamlConfLoader {
                 path: full_path,
             })?;
 
-        let config = serde_norway::from_str(&content)
+        let config = serde_yaml::from_str(&content)
             .map_err(|e| MDMError::Parse(e))?;
 
         Ok(config)
@@ -52,7 +53,7 @@ impl YamlConfLoader {
 
 impl ConfigLoader for YamlConfLoader {
     fn load_config(&self) -> Result<MDMConfig, MDMError> {
-        let vars: HashMap<String, String> = self.config_from_file(
+        let vars: IndexMap<String, String> = self.config_from_file(
             ConfigFile::Vars.name()
         )?;
         

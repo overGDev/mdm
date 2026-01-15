@@ -9,7 +9,7 @@ pub enum MDMError {
     UnknownSubcommand,
 
     #[error("Parsing error: {0}")]
-    Parse(#[from] serde_norway::Error),
+    Parse(#[from] serde_yaml::Error),
 
     #[error("IO error ({path}): {source}")]
     IO {
@@ -23,6 +23,11 @@ pub enum MDMError {
     #[error("Command aborted: {reason}\n{help}")]
     InvalidCommandState { reason: String, help: String },
 
-    #[error("Error: {0}")]
+    #[error("{0}")]
     Other(String),
+}
+
+pub fn print_and_abort(e: MDMError) -> ! {
+    eprintln!("{}", e);
+    std::process::exit(1);
 }
