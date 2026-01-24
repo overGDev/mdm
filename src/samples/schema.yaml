@@ -8,6 +8,7 @@
 # Rule: Alias overrides automatic filename generation.
 # Normalization: Alias is also normalized to snake_case ("INDEX" -> "index").
 # Result: creates "index.md" (Keeps the long title in the document header).
+# Warning: There should be only one 'index.md' file on the whole project (for 'mdm sync index').
 - title: "Unnecesarily long title but my boss said this must be the section's title"
   alias: "INDEX"
 
