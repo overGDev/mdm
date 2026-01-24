@@ -54,6 +54,9 @@ impl SectionsCommand {
                             path: intro_path.clone(),
                         })?;
                 }
+                if section.has_intro {
+                    admited_paths.push(current_path.join("intro.md"));
+                }
                 let children_slice = &section.children;
                 SectionsCommand::sync_sections(
                     admited_paths,
