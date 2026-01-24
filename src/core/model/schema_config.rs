@@ -42,7 +42,7 @@ impl SchemaSection {
             if c.is_alphanumeric() {
                 input.push(c);
                 last_was_separator = false;
-            } else if !last_was_separator {
+            } else if !last_was_separator && c != '.' {
                 input.push(separator);
                 last_was_separator = true;
             }
