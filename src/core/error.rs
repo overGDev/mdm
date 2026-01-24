@@ -40,9 +40,11 @@ impl MDMError {
             },
         }
     }
+
+    pub fn print_and_abort(self) -> ! {
+        eprintln!("{}", self);
+        std::process::exit(1);
+    }
 }
 
-pub fn print_and_abort(e: MDMError) -> ! {
-    eprintln!("{}", e);
-    std::process::exit(1);
-}
+
