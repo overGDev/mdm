@@ -84,13 +84,17 @@ impl SchemaSection {
         format!("{} {}", prefix, self.title)
     }
 
-    fn html_format_header(&self, depth: usize) -> String {
+    fn kebab_case_title_id(&self) -> String {
         let mut title_id = self.custom_id
             .as_deref()
             .unwrap_or(&self.title)
             .to_string();
         SchemaSection::normalize(&mut title_id, '-');
+        title_id
+    }
 
+    fn html_format_header(&self, depth: usize) -> String {
+        let title_id = self.kebab_case_title_id();
         let open_tag = format!("<h{} id=\"{}\">", depth, title_id);
         let closing_tag = format!("</h{}>", depth.to_string());
         format!("{}{}{}", open_tag, self.title, closing_tag)
@@ -102,6 +106,15 @@ impl SchemaSection {
         } else {
             self.markdown_format_header(depth)
         }
+    }
+
+    pub fn get_section_index(&self, depth: usize) -> String {
+        format!(
+            "{}- [{}](#{})",
+            "  ".repeat(depth - 1),
+            self.title,
+            self.kebab_case_title_id()
+        )
     }
 }
 
@@ -273,10 +286,35 @@ mod tests {
         let test_2 = custom_id_node.get_section_header(4);
         let expected_1 = "## Test";
         let expected_2 = "<h4 id=\"custom\">Test</h4>";
-        println!("{}, {}", test_1, test_2);
 
         assert!(
             test_1.eq(expected_1) && test_2.eq(expected_2)
         )
+    }
+
+    #[test]
+    fn nesting_indents_index() {
+        let node = mock_node();
+
+        let result_1 = node.get_section_index(1);
+        let result_2 = node.get_section_index(3);
+
+        assert!(
+            result_1.eq("- [Test](#test)") && result_2.eq("    - [Test](#test)"),
+            "Parent nodes with intros should be valid"
+        );
+    }
+
+    #[test]
+    fn custom_id_appears_on_index() {
+        let mut complicated_node = mock_node();
+        complicated_node.custom_id = Some(String::from("my very smart id"));
+
+        let result_1 = complicated_node.get_section_index(1);
+
+        assert!(
+            result_1.eq("- [Test](#my-very-smart-id)"),
+            "Parent nodes with intros should be valid"
+        );
     }
 }

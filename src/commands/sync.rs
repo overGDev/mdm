@@ -1,6 +1,6 @@
 use clap::Command;
 
-use crate::{commands::SectionsCommand, core::{app::subcommand_from_matches::subcommand_from_matches, error::MDMError, ext::CommandExt, model::{CliCommand, CommandCtx}}};
+use crate::{commands::{IndexCommand, SectionsCommand}, core::{app::subcommand_from_matches::subcommand_from_matches, error::MDMError, ext::CommandExt, model::{CliCommand, CommandCtx}}};
 
 const COMMAND_NAME: &str = "sync";
 const COMMAND_ABOUT: &str = "Update folders and files to'mdm/schema.yaml' contents";
@@ -11,6 +11,7 @@ impl SyncCommand {
     fn subcommands(&self) -> Vec<Box<dyn CliCommand>> {
         vec![
             Box::new(SectionsCommand {}),
+            Box::new(IndexCommand {}),
         ]
     }
 }
