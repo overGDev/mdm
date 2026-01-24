@@ -90,22 +90,15 @@ impl CliCommand for SectionsCommand {
     }
 
     fn run(&self, ctx: CommandCtx) -> Result<(), MDMError> {
-        let config = ctx.config
-            .ok_or(MDMError::InvalidCommandState {
-                reason: "Failed to load config on a command that requires it.".into(),
-                help: "Try running 'mdm check.".into(), 
-            })?;
-
-        let schema = config.schema
-            .ok_or(MDMError::InvalidCommandState {
-                reason: "Unable to execute sync command without a loaded schema".into(),
-                help: "Generate a document schema inside of 'mdm/schema.yaml' first.".into(), 
-            })?;
-
+        let config = ctx.require_config()?;
+        let schema = config.require_schema(
+            "Schema not defined.",
+            "Define a schema in your 'mdm/schema.yaml' file first.",
+        )?;
         let mut admited_paths= vec![];
         SectionsCommand::sync_sections(
             &mut admited_paths,
-            &schema, 
+            schema, 
             &config.paths.sections
         )?;
 

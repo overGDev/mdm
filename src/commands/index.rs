@@ -67,21 +67,12 @@ impl CliCommand for IndexCommand {
     }
 
     fn run(&self, ctx: CommandCtx) -> Result<(), MDMError> {
-        let config = ctx.config
-            .ok_or(MDMError::InvalidCommandState {
-                reason: "Failed to load config.".into(),
-                help: "Run 'mdm check' to verify configuration.".into(), 
-            })?;
-
-        let schema = match config.schema {
-            Some(s) => s,
-            None => return Err(MDMError::InvalidCommandState {
-                reason: "Schema not found.".into(),
-                help: "Define a schema in your config file.".into() 
-            })
-        };
-
-        let sections_path = config.paths.sections;
+        let config = ctx.require_config()?;
+        let schema = config.require_schema(
+            "Schema not defined.",
+            "Define a schema in your 'mdm/schema.yaml' file first.",
+        )?;
+        let sections_path = config.paths.sections.as_ref();
         let mut index_lines: Vec<String> = Vec::new();
 
         let target_path = IndexCommand::collect_indices(

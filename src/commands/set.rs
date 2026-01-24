@@ -44,11 +44,7 @@ impl CliCommand for SetCommand {
     }
 
     fn run(&self, ctx: CommandCtx) -> Result<(), MDMError> {
-        let config = ctx.config
-            .ok_or(MDMError::InvalidCommandState {
-                reason: "Failed to load config on a command that requires it.".into(),
-                help: "Try running 'mdm check.".into(), 
-            })?;
+        let config = ctx.require_config()?;
 
         let force = ctx.args.get_flag(FORCE_FLAG_ID);
         let provided_key = ctx.args.get_one::<String>(KEY_ARG_ID)

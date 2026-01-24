@@ -22,13 +22,8 @@ impl CliCommand for ListCommand {
     }
 
     fn run(&self, ctx: CommandCtx) -> Result<(), MDMError> {
-        let config = ctx.config
-            .ok_or(MDMError::InvalidCommandState {
-                reason: "Failed to load config on a command that requires it.".into(),
-                help: "Try running 'mdm check.".into(), 
-            })?;
-
-        for (var_name, var_value) in config.vars.into_iter() {
+        let config = ctx.require_config()?;
+        for (var_name, var_value) in config.vars.iter() {
             println!("{}:\t{}", var_name, var_value);
         }
         Ok(())
