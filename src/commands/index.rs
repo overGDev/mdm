@@ -97,9 +97,6 @@ impl CliCommand for IndexCommand {
 
             let mut writer = BufWriter::new(output_file);
 
-            writeln!(writer, "# Table of Contents\n")
-                .map_err(|e| MDMError::from_io(e, &path))?;
-
             for line in index_lines {
                 writeln!(writer, "{}", line)
                     .map_err(|e| MDMError::from_io(e, &path))?;
