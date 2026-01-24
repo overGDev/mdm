@@ -5,8 +5,6 @@ pub mod var;
 pub mod list;
 pub mod set;
 pub mod build;
-pub mod sections;
-pub mod index;
 
 pub use init::InitCommand;
 pub use sync::SyncCommand;
@@ -15,5 +13,3 @@ pub use var::VarCommand;
 pub use list::ListCommand;
 pub use set::SetCommand;
 pub use build::BuildCommand;
-pub use sections::SectionsCommand;
-pub use index::IndexCommand;
