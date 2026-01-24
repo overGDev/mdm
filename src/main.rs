@@ -1,5 +1,5 @@
 use crate::{
-    commands::{CheckCommand, InitCommand, SyncCommand, VarCommand}, core::{
+    commands::{BuildCommand, CheckCommand, InitCommand, SyncCommand, VarCommand}, core::{
         app::{config_files::load_config, subcommand_from_matches::subcommand_from_matches}, error::print_and_abort, ext::CommandExt, model::{CliCommand, CommandCtx, ConfigLoader}
     }, io::yaml_conf_loader::YamlConfLoader
 };
@@ -18,6 +18,7 @@ fn main() {
         Box::new(SyncCommand {}),
         Box::new(CheckCommand {}),
         Box::new(VarCommand {}),
+        Box::new(BuildCommand {}),
     ];
     let app = clap::Command::new(APP_NAME)
         .about(APP_ABOUT)

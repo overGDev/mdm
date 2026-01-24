@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -25,6 +27,19 @@ pub enum MDMError {
 
     #[error("{0}")]
     Other(String),
+}
+
+impl MDMError {
+    pub fn from_io(err: std::io::Error, path: &Path) -> Self {
+        match err.kind() {
+            std::io::ErrorKind::NotFound => MDMError::Other(format!("File not found: {:?}", path)),
+            std::io::ErrorKind::PermissionDenied => MDMError::Other(format!("Access denied: {:?}", path)),
+            _ => MDMError::IO {
+                source: err,
+                path: path.to_path_buf(),
+            },
+        }
+    }
 }
 
 pub fn print_and_abort(e: MDMError) -> ! {
