@@ -33,7 +33,7 @@ pub struct SchemaSection {
 }
 
 impl SchemaSection {
-    fn normalize(input: &mut String) {
+    fn normalize(input: &mut String, separator: char) {
         let deunicoded = deunicode::deunicode(input).to_lowercase();
         let mut last_was_separator = true;
         input.clear();
@@ -43,12 +43,12 @@ impl SchemaSection {
                 input.push(c);
                 last_was_separator = false;
             } else if !last_was_separator {
-                input.push('_');
+                input.push(separator);
                 last_was_separator = true;
             }
         }
 
-        if input.ends_with('_') {
+        if input.ends_with(separator) {
             input.pop();
         }
     }
@@ -63,13 +63,45 @@ impl SchemaSection {
             .unwrap_or(&self.title)
             .to_string();
 
-        SchemaSection::normalize(&mut fs_name);
+        SchemaSection::normalize(&mut fs_name, '_');
 
         if self.is_leaf() {
             fs_name.push_str(".md");
         }
 
         fs_name
+    }
+
+    pub fn has_custom_id(&self) -> bool {
+        match self.custom_id {
+            Some(_) => true,
+            None => false
+        }
+    }
+
+    fn markdown_format_header(&self, depth: usize) -> String {
+        let prefix = "#".repeat(depth);
+        format!("{} {}", prefix, self.title)
+    }
+
+    fn html_format_header(&self, depth: usize) -> String {
+        let mut title_id = self.custom_id
+            .as_deref()
+            .unwrap_or(&self.title)
+            .to_string();
+        SchemaSection::normalize(&mut title_id, '-');
+
+        let open_tag = format!("<h{} id=\"{}\">", depth, title_id);
+        let closing_tag = format!("</h{}>", depth.to_string());
+        format!("{}{}{}", open_tag, self.title, closing_tag)
+    }
+
+    pub fn get_section_header(&self, depth: usize) -> String {
+        if self.has_custom_id() {
+            self.html_format_header(depth)
+        } else {
+            self.markdown_format_header(depth)
+        }
     }
 }
 
@@ -229,5 +261,22 @@ mod tests {
         let result = parent_node.validate();
 
         assert!(result.is_ok(), "Parent nodes with intros should be valid");
+    }
+
+    #[test]
+    fn depth_changes_header_level() {
+        let node = mock_node();
+        let mut custom_id_node = mock_node();
+        custom_id_node.custom_id = Some(String::from("custom"));
+
+        let test_1 = node.get_section_header(2);
+        let test_2 = custom_id_node.get_section_header(4);
+        let expected_1 = "## Test";
+        let expected_2 = "<h4 id=\"custom\">Test</h4>";
+        println!("{}, {}", test_1, test_2);
+
+        assert!(
+            test_1.eq(expected_1) && test_2.eq(expected_2)
+        )
     }
 }
