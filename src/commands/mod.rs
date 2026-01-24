@@ -13,6 +13,7 @@ pub use sync::SyncCommand;
 pub use check::CheckCommand;
 pub use var::VarCommand;
 pub use list::ListCommand;
+pub use set::SetCommand;
 pub use build::BuildCommand;
 pub use sections::SectionsCommand;
 pub use index::IndexCommand;
