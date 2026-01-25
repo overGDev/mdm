@@ -25,7 +25,7 @@ impl CliCommand for CheckCommand {
             .as_ref()
             .ok_or(MDMError::MDMConfigNotFound)?;
 
-        println!("Configuration root found at: {}", config.root.display());
+        println!("Configuration root found at: {}.", config.root.display());
         Ok(())
     }
 }

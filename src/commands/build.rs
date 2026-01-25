@@ -10,7 +10,7 @@ use crate::core::{
 };
 
 const COMMAND_NAME: &str = "build";
-const COMMAND_ABOUT: &str = "Combine the sections into the output file";
+const COMMAND_ABOUT: &str = "Combine the sections into the output file.";
 const COMMAND_LONG_ABOUT: &str = "Iterates over all the sections folder path recursively and appends their contents to the output file on the specified order.";
 
 pub struct BuildCommand {}
@@ -101,6 +101,7 @@ impl CliCommand for BuildCommand {
         BuildCommand::sync_sections(
             &mut writer, &schema, &sections_path, 1
         )?;
+        println!("Successfully combined document at '{}'.", config.paths.output.display());
         Ok(())
     }
 }

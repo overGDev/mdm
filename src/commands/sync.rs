@@ -51,7 +51,7 @@ impl SyncCommand {
         
             let path = dir_entry.path();
             if path.is_file() && !admited_paths.contains(&path.to_path_buf()) {
-                println!("Clear: {}", path.display());
+                println!("Removing: {}.", path.display());
                 std::fs::remove_file(path)
                     .map_err(|e| MDMError::IO {
                         source: e,
@@ -168,6 +168,7 @@ impl CliCommand for SyncCommand {
             schema, 
             sections_path,
         )?;
+        println!("Successfully updated sections folder at: {}.", sections_path.display());
 
         let clean = ctx.args.get_flag(CLEAN_FLAG_ID);
         if clean {
@@ -201,7 +202,7 @@ impl CliCommand for SyncCommand {
                 writeln!(writer, "{}", line)
                     .map_err(|e| MDMError::from_io(e, &path))?;
             }
-            println!("Successfully updated index at: {}", path.display());
+            println!("Successfully updated index at: {}.", path.display());
         }
         Ok(())
     }

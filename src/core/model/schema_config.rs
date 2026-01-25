@@ -197,7 +197,6 @@ mod tests {
         let mut node = mock_node();
         
         node.title = "Helló Wörld".to_string();
-        println!("{}", node.get_fs_name());
         assert_eq!(node.get_fs_name(), "hello_world.md");
     }
 
@@ -206,7 +205,6 @@ mod tests {
         let mut node = mock_node();
         
         node.title = "HeLLo woRlD".to_string();
-        println!("{}", node.get_fs_name());
         assert_eq!(node.get_fs_name(), "hello_world.md");
     }
 
@@ -215,7 +213,6 @@ mod tests {
         let mut node = mock_node();
         
         node.title = "        hello   world   ".to_string();
-        println!("{}", node.get_fs_name());
         assert_eq!(node.get_fs_name(), "hello_world.md");
     }
 

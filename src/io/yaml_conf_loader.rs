@@ -64,7 +64,7 @@ impl ConfigLoader for YamlConfLoader {
 
         let raw_schema: Option<SchemaConfig> = self.config_from_file(
             ConfigFile::Schema.name()
-        ).ok();
+        )?;
         let schema = raw_schema
             .map(|raw| {
                 raw.sections

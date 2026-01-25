@@ -8,7 +8,7 @@ use crate::core::{
 };
 
 const COMMAND_NAME: &str = "init";
-const COMMAND_ABOUT: &str = "Initialize a new document project workspace";
+const COMMAND_ABOUT: &str = "Initialize a new document project workspace.";
 const COMMAND_LONG_ABOUT: &str = "Sets up the necessary directory structure and generates default configuration files for the project. It creates all required reserved files in the specified workspace. If these files already exist, the command will abort to prevent data loss, unless the --force flag is used to overwrite them.";
 
 const WORKDIR_ARG_ID: &str = "workdir";

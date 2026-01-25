@@ -3,7 +3,7 @@ use clap::{Arg, ArgAction, Command};
 use crate::core::{app::{ConfigFile, MDM_CONF_FOLDER_NAME}, error::MDMError, model::{CliCommand, CommandCtx}};
 
 const COMMAND_NAME: &str = "set";
-const COMMAND_ABOUT: &str = "Set the value of a variable inside of 'mdm/vars.yaml'";
+const COMMAND_ABOUT: &str = "Set the value of a variable inside of 'mdm/vars.yaml'.";
 const COMMAND_LONG_ABOUT: &str = "Sets the value for the specified key. If the key already exists, the command will abort to prevent accidental overwrites, unless the --force flag is used to update it.";
 
 const KEY_ARG_ID: &str = "key";
