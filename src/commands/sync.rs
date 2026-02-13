@@ -150,7 +150,7 @@ impl CliCommand for SyncCommand {
                     .required(false)
                     .action(ArgAction::SetTrue)
                     .long("skip-index")
-                    .help("automatically update found 'index.md' file"),
+                    .help("avoid updating 'index.md' file"),
             ]);
     }
 
