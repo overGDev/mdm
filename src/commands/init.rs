@@ -92,13 +92,13 @@ impl CliCommand for InitCommand {
                     .default_value(".")
                     .value_hint(ValueHint::DirPath)
                     .value_name("WORKDIR")
-                    .help("project's initialization directory"),
+                    .help("Project's initialization directory"),
                 Arg::new(FORCE_FLAG_ID)
                     .required(false)
                     .action(ArgAction::SetTrue)
                     .short('f')
                     .long("force")
-                    .help("override existing 'mdm' folder config files if present"),
+                    .help("Override existing 'mdm' folder config files if present"),
             ]);
     }
 

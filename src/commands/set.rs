@@ -29,17 +29,17 @@ impl CliCommand for SetCommand {
                 Arg::new(KEY_ARG_ID)
                     .required(true)
                     .value_name("KEY")
-                    .help("name of keyword to associate with a value"),
+                    .help("Name of keyword to associate with a value"),
                 Arg::new(VALUE_ARG_ID)
                     .required(true)
                     .value_name("VALUE")
-                    .help("value to replace a key with"),
+                    .help("Value to replace a key with"),
                 Arg::new(FORCE_FLAG_ID)
                     .required(false)
                     .action(ArgAction::SetTrue)
                     .short('f')
                     .long("force")
-                    .help("override the value of a variable already present"),
+                    .help("Override the value of a variable already present"),
             ]);
     }
 

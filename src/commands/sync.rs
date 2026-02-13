@@ -145,12 +145,12 @@ impl CliCommand for SyncCommand {
                     .action(ArgAction::SetTrue)
                     .short('c')
                     .long("clean")
-                    .help("delete existing files non-present on current schema"),
+                    .help("Delete existing files non-present on current schema"),
                 Arg::new(SKIP_INDEX_FLAG_ID)
                     .required(false)
                     .action(ArgAction::SetTrue)
                     .long("skip-index")
-                    .help("avoid updating 'index.md' file"),
+                    .help("Avoid updating 'index.md' file"),
             ]);
     }
 
