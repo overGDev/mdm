@@ -4,10 +4,10 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum MDMError {
-    #[error("Error: no subcommand provided. Use --help for options.")]
+    #[error("Error: no subcommand provided. Use --help for options")]
     NoSubcommandProvided,
 
-    #[error("Error: unknown subcommand provided.")]
+    #[error("Error: unknown subcommand provided")]
     UnknownSubcommand,
 
     #[error("Parsing error: {0}")]
@@ -19,7 +19,7 @@ pub enum MDMError {
         path: std::path::PathBuf,
     },
 
-    #[error("Command aborted: '.mdm.conf' file not found. Run 'mdm init' first.")]
+    #[error("Command aborted: '.mdm.conf' file not found. Run 'mdm init' first")]
     MDMConfigNotFound,
 
     #[error("Command aborted: {reason}\n{help}")]

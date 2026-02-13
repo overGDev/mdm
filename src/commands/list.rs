@@ -3,7 +3,7 @@ use clap::Command;
 use crate::core::{error::MDMError, model::{CliCommand, CommandCtx}};
 
 const COMMAND_NAME: &str = "list";
-const COMMAND_ABOUT: &str = "List all variables set on 'mdm/config.yaml'.";
+const COMMAND_ABOUT: &str = "List all variables set on 'mdm/config.yaml'";
 
 pub struct ListCommand {}
 

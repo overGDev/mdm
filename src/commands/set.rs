@@ -3,8 +3,8 @@ use clap::{Arg, ArgAction, Command};
 use crate::core::{app::{ConfigFile, MDM_CONF_FOLDER_NAME}, error::MDMError, model::{CliCommand, CommandCtx}};
 
 const COMMAND_NAME: &str = "set";
-const COMMAND_ABOUT: &str = "Set the value of a variable inside of 'mdm/vars.yaml'.";
-const COMMAND_LONG_ABOUT: &str = "Sets the value for the specified key. If the key already exists, the command will abort to prevent accidental overwrites, unless the --force flag is used to update it.";
+const COMMAND_ABOUT: &str = "Set the value of a variable inside of 'mdm/vars.yaml'";
+const COMMAND_LONG_ABOUT: &str = "Sets the value for the specified key. If the key already exists, the command will abort to prevent accidental overwrites, unless the --force flag is used to update it";
 
 const KEY_ARG_ID: &str = "key";
 const VALUE_ARG_ID: &str = "value";
@@ -49,20 +49,20 @@ impl CliCommand for SetCommand {
         let force = ctx.args.get_flag(FORCE_FLAG_ID);
         let provided_key = ctx.args.get_one::<String>(KEY_ARG_ID)
             .ok_or(MDMError::InvalidCommandState { 
-                reason: "Missing required KEY argument.".into(),
+                reason: "Missing required KEY argument".into(),
                 help: "Provide the key after the command, e.g.: 'mdm var set MY_KEY my_value'".into(),
             })?;
         let provided_value = ctx.args.get_one::<String>(VALUE_ARG_ID)
             .ok_or(MDMError::InvalidCommandState { 
-                reason: "Missing required VALUE argument.".into(),
+                reason: "Missing required VALUE argument".into(),
                 help: "Provide a value for the key, e.g.: 'mdm var set MY_KEY my_value'".into(),
             })?;
 
         let mut new_vars = config.vars.clone();
         if new_vars.contains_key(provided_key) && !force {
             return Err(MDMError::InvalidCommandState {
-                reason: format!("'{}' key exists already.", provided_key),
-                help: "Use --force (-f) for command to override existing keys.".into()
+                reason: format!("'{}' key exists already", provided_key),
+                help: "Use --force (-f) for command to override existing keys".into()
             });
         }
 

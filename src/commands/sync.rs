@@ -8,8 +8,8 @@ use walkdir::WalkDir;
 use crate::core::{error::MDMError, model::{CliCommand, CommandCtx, SchemaSection}};
 
 const COMMAND_NAME: &str = "sync";
-const COMMAND_ABOUT: &str = "Update the sections path contents based on 'mdm/schema.yaml'.";
-const COMMAND_LONG_ABOUT: &str = "Reads the contents of 'mdm/schema.yaml' and iterates over the defined structure, generating the corresponding directories and files while ensuring the usage of snake_case. If there are currently folder or files no longer present on the project's schema, these can be removed by using the --clean flag. An automatic index will be generated if a file named 'index.md' is found, unless the '--skip-index' flag is used.";
+const COMMAND_ABOUT: &str = "Update the sections path contents based on 'mdm/schema.yaml'";
+const COMMAND_LONG_ABOUT: &str = "Reads the contents of 'mdm/schema.yaml' and iterates over the defined structure, generating the corresponding directories and files while ensuring the usage of snake_case. If there are currently folder or files no longer present on the project's schema, these can be removed by using the --clean flag. An automatic index will be generated if a file named 'index.md' is found, unless the '--skip-index' flag is used";
 
 const CLEAN_FLAG_ID: &str = "clean";
 const SKIP_INDEX_FLAG_ID: &str = "skip-index";
@@ -51,7 +51,7 @@ impl SyncCommand {
         
             let path = dir_entry.path();
             if path.is_file() && !admited_paths.contains(&path.to_path_buf()) {
-                println!("Removing: {}.", path.display());
+                println!("Removing: {}", path.display());
                 std::fs::remove_file(path)
                     .map_err(|e| MDMError::IO {
                         source: e,
@@ -157,8 +157,8 @@ impl CliCommand for SyncCommand {
     fn run(&self, ctx: CommandCtx) -> Result<(), MDMError> {
         let config = ctx.require_config()?;
         let schema = config.require_schema(
-            "Schema not defined.",
-            "Define a schema in your 'mdm/schema.yaml' file first.",
+            "Schema not defined",
+            "Define a schema in your 'mdm/schema.yaml' file first",
         )?;
         let sections_path = config.paths.sections.as_ref();
 
@@ -168,7 +168,7 @@ impl CliCommand for SyncCommand {
             schema, 
             sections_path,
         )?;
-        println!("Successfully updated sections folder at: {}.", sections_path.display());
+        println!("Successfully updated sections folder at: {}", sections_path.display());
 
         let clean = ctx.args.get_flag(CLEAN_FLAG_ID);
         if clean {
@@ -202,7 +202,7 @@ impl CliCommand for SyncCommand {
                 writeln!(writer, "{}", line)
                     .map_err(|e| MDMError::from_io(e, &path))?;
             }
-            println!("Successfully updated index at: {}.", path.display());
+            println!("Successfully updated index at: {}", path.display());
         }
         Ok(())
     }

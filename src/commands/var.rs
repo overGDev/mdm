@@ -3,7 +3,7 @@ use clap::Command;
 use crate::{commands::{ListCommand, SetCommand}, core::{app::subcommand_from_matches::subcommand_from_matches, error::MDMError, ext::CommandExt, model::{CliCommand, CommandCtx}}};
 
 const COMMAND_NAME: &str = "var";
-const COMMAND_ABOUT: &str = "Subcommand to access variable operations.";
+const COMMAND_ABOUT: &str = "Subcommand to access variable operations";
 
 pub struct VarCommand {}
 

@@ -8,8 +8,8 @@ use crate::core::{
 };
 
 const COMMAND_NAME: &str = "init";
-const COMMAND_ABOUT: &str = "Initialize a new document project workspace.";
-const COMMAND_LONG_ABOUT: &str = "Sets up the necessary directory structure and generates default configuration files for the project. It creates all required reserved files in the specified workspace. If these files already exist, the command will abort to prevent data loss, unless the --force flag is used to overwrite them.";
+const COMMAND_ABOUT: &str = "Initialize a new document project workspace";
+const COMMAND_LONG_ABOUT: &str = "Sets up the necessary directory structure and generates default configuration files for the project. It creates all required reserved files in the specified workspace. If these files already exist, the command will abort to prevent data loss, unless the --force flag is used to overwrite them";
 
 const WORKDIR_ARG_ID: &str = "workdir";
 const FORCE_FLAG_ID: &str = "force";
@@ -25,14 +25,14 @@ impl InitCommand {
             Ok(exit_status) if exit_status.success() => Ok(()),
             Ok(_) => {
                 return Err(MDMError::InvalidCommandState {
-                    reason: "Git initialization failed.".into(),
-                    help: "Ensure you have permissions to write in the target directory.".into(),
+                    reason: "Git initialization failed".into(),
+                    help: "Ensure you have permissions to write in the target directory".into(),
                 })
             }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
                 return Err(MDMError::InvalidCommandState {
-                    reason: "Git command not found.".into(),
-                    help: "Please install Git and ensure it is available in your PATH.".into(),
+                    reason: "Git command not found".into(),
+                    help: "Please install Git and ensure it is available in your PATH".into(),
                 })
             }
             Err(error) => {
@@ -118,8 +118,8 @@ impl CliCommand for InitCommand {
             let path = mdm_conf_folder.join(file.name());
             if path.exists() && !force {
                 return Err(MDMError::InvalidCommandState {
-                    reason: format!("'{}' file exists already.", file.name()),
-                    help: "Use --force (-f) for command to override existing files.".into()
+                    reason: format!("'{}' file exists already", file.name()),
+                    help: "Use --force (-f) for command to override existing files".into()
                 });
             }
             

@@ -12,8 +12,8 @@ pub struct CommandCtx {
 impl CommandCtx {
     pub fn require_config(&self) -> Result<&MDMConfig, MDMError> {
         self.config.as_ref().ok_or_else(|| MDMError::InvalidCommandState {
-            reason: "Failed to load config on a command that requires it.".into(),
-            help: "Try running 'mdm check'.".into(),
+            reason: "Failed to load config on a command that requires it".into(),
+            help: "Try running 'mdm check'".into(),
         })
     }
 }

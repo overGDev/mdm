@@ -10,7 +10,7 @@ pub mod io;
 
 const APP_NAME: &str = "mdm";
 const APP_ABOUT: &str = "Manage documentation projects using Docs-as-Code workflows";
-const APP_LONG_ABOUT: &str = "MDM is a tool designed to manage documentation within version-controlled environments with Git. It streamlines the document lifecycle by providing a modular and flexible framework for handling the iterative growth of collaborative documents, such as technical documentation of services or applications.";
+const APP_LONG_ABOUT: &str = "MDM is a tool designed to manage documentation within version-controlled environments with Git. It streamlines the document lifecycle by providing a modular and flexible framework for handling the iterative growth of collaborative documents, such as technical documentation of services or applications";
 
 fn main() {
     let subcommands: Vec<Box<dyn CliCommand>> = vec![
