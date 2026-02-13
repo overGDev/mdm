@@ -98,7 +98,7 @@ impl CliCommand for InitCommand {
                     .action(ArgAction::SetTrue)
                     .short('f')
                     .long("force")
-                    .help("override existing '.mdm.conf' file if present"),
+                    .help("override existing 'mdm' folder config files if present"),
             ]);
     }
 
