@@ -4,7 +4,7 @@ use crate::core::{app::{ConfigFile, MDM_CONF_FOLDER_NAME}, error::MDMError, mode
 
 const COMMAND_NAME: &str = "set";
 const COMMAND_ABOUT: &str = "Set the value of a variable inside of 'mdm/vars.yaml'";
-const COMMAND_LONG_ABOUT: &str = "Sets the value for the specified key. If the key already exists, the command will abort to prevent accidental overwrites, unless the --force flag is used to update it.";
+const COMMAND_LONG_ABOUT: &str = "Sets the value for the specified key. If the key already exists, the command will abort to prevent accidental overwrites, unless the --force flag is used to update it";
 
 const KEY_ARG_ID: &str = "key";
 const VALUE_ARG_ID: &str = "value";
@@ -29,44 +29,40 @@ impl CliCommand for SetCommand {
                 Arg::new(KEY_ARG_ID)
                     .required(true)
                     .value_name("KEY")
-                    .help("name of keyword to associate with a value"),
+                    .help("Name of keyword to associate with a value"),
                 Arg::new(VALUE_ARG_ID)
                     .required(true)
                     .value_name("VALUE")
-                    .help("value to replace a key with"),
+                    .help("Value to replace a key with"),
                 Arg::new(FORCE_FLAG_ID)
                     .required(false)
                     .action(ArgAction::SetTrue)
                     .short('f')
                     .long("force")
-                    .help("override the value of a variable already present"),
+                    .help("Override the value of a variable already present"),
             ]);
     }
 
     fn run(&self, ctx: CommandCtx) -> Result<(), MDMError> {
-        let config = ctx.config
-            .ok_or(MDMError::InvalidCommandState {
-                reason: "Failed to load config on a command that requires it.".into(),
-                help: "Try running 'mdm check.".into(), 
-            })?;
+        let config = ctx.require_config()?;
 
         let force = ctx.args.get_flag(FORCE_FLAG_ID);
         let provided_key = ctx.args.get_one::<String>(KEY_ARG_ID)
             .ok_or(MDMError::InvalidCommandState { 
-                reason: "Missing required KEY argument.".into(),
+                reason: "Missing required KEY argument".into(),
                 help: "Provide the key after the command, e.g.: 'mdm var set MY_KEY my_value'".into(),
             })?;
         let provided_value = ctx.args.get_one::<String>(VALUE_ARG_ID)
             .ok_or(MDMError::InvalidCommandState { 
-                reason: "Missing required VALUE argument.".into(),
+                reason: "Missing required VALUE argument".into(),
                 help: "Provide a value for the key, e.g.: 'mdm var set MY_KEY my_value'".into(),
             })?;
 
         let mut new_vars = config.vars.clone();
         if new_vars.contains_key(provided_key) && !force {
             return Err(MDMError::InvalidCommandState {
-                reason: format!("'{}' key exists already.", provided_key),
-                help: "Use --force (-f) for command to override existing keys.".into()
+                reason: format!("'{}' key exists already", provided_key),
+                help: "Use --force (-f) for command to override existing keys".into()
             });
         }
 
