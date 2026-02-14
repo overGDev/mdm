@@ -1,0 +1,5 @@
+# Paths are relative to the location of the 'mdm/' folder
+# Lets assume 'my-doc-project/mdm/'
+sections: "sections"  # -> 'my-doc-project/sections/'
+assets: "assets"      # -> 'my-doc-project/assets/'
+output: "document.md" # -> 'my-doc-project/document.md'

@@ -1,0 +1,63 @@
+# 1. DEFAULT BEHAVIOR (LEAF)
+# Rule: Title becomes snake_case filename. 
+# Result: creates "project_scope.md"
+- title: "Project Scope"
+
+
+# 2. ALIAS USAGE (LEAF)
+# Rule: Alias overrides automatic filename generation.
+# Normalization: Alias is also normalized to snake_case ("INDEX" -> "index").
+# Result: creates "index.md" (Keeps the long title in the document header).
+# Warning: There should be only one 'index.md' file on the whole project (for 'mdm sync index').
+- title: "Unnecesarily long title but my boss said this must be the section's title"
+  alias: "INDEX"
+
+
+# 3. DIRECTORY BEHAVIOR (BRANCH)
+# Rule: Presence of 'children' turns the section into a directory.
+# Result: creates directory "feature_list/"
+- title: "Feature List"
+  children:
+    # These become files nested inside "feature_list/"
+    - title: "Mobile version"  # -> "feature_list/mobile_version.md"
+    - title: "Desktop version" # -> "feature_list/desktop_version.md"
+
+
+# 4. INTRO & EXTREME NORMALIZATION
+# Rule: snake_case normalization handles erratic casing.
+# Result: creates directory "architecture_iterations/"
+- title: "ArChiTECture ITERAtions"
+  
+  # Rule: Only directory sections can have an intro.
+  # Result: creates file "architecture_iterations/intro.md"
+  has_intro: true
+  
+  children:
+    # 4.1. ALIAS ON DIRECTORIES + PAGE BREAKS
+    - title: "First ADD iteration"
+      alias: "first   iTERation" # Normalization: "first_iteration"
+      children:
+        # Rule: skip_after is true by default. Here explicitly disabled.
+        # Result: "Context level" text flows immediately into the next section.
+        - title: "Context level"
+          skip_after: false
+        
+        # Rule: skip_after: true is redundant (default) but valid.
+        - title: "Container level"
+          skip_after: true
+
+    # 4.2. ID HANDLING & DUPLICATES
+    - title: "Second ADD iteration"
+      alias: "Second iteration"
+      children:
+        # Rule: Custom IDs to prevent anchor collisions.
+        # Use case: Repetitive titles in different hierarchies.
+        - title: "Context level"
+          custom_id: "02-it-context" # Explicit ID (kebab-case recommended)
+          skip_after: false
+          
+        # Rule: 'id' also undergoes normalization (spaces to hyphens/kebab-case).
+        # Result: Final HTML/LaTeX ID/Label will be "02-it-container"
+        - title: "Container level"
+          custom_id: "02 IT    CONTAIner"
+          skip_after: false
