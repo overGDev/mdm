@@ -3,6 +3,7 @@ use std::io::{Write, BufWriter};
 use std::path::Path;
 
 use clap::Command;
+use regex::Regex;
 
 use crate::core::model::SchemaSection;
 use crate::core::{
@@ -22,6 +23,7 @@ impl BuildCommand {
         base_path: &Path,
         depth: usize,
     ) -> Result<(), MDMError> { 
+        let re = Regex::new(r"(\.\./)+")?;
         for section in sections {
             let current_path: std::path::PathBuf = base_path.join(section.get_fs_name());
             if !current_path.exists() {
@@ -48,9 +50,10 @@ impl BuildCommand {
             };
 
             if let Some(path) = read_path {
-                let mut file = File::open(&path)
+                let content = std::fs::read_to_string(&path)
                     .map_err(|err| MDMError::from_io(err, &path))?;
-                std::io::copy(&mut file, writer)
+                let processed_content = re.replace_all(&content, "./");
+                writer.write_all(processed_content.as_bytes())
                     .map_err(|err| MDMError::Other(err.to_string()))?;
                 writer.write_all(b"\n\n")
                     .map_err(|err| MDMError::Other(err.to_string()))?;
