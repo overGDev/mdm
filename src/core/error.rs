@@ -19,6 +19,9 @@ pub enum MDMError {
         path: std::path::PathBuf,
     },
 
+    #[error("Regex error: {0}")]
+    Regex(#[from] regex::Error),
+
     #[error("Command aborted: '.mdm.conf' file not found. Run 'mdm init' first")]
     MDMConfigNotFound,
 
