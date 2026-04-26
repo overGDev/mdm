@@ -14,6 +14,8 @@ const COMMAND_NAME: &str = "build";
 const COMMAND_ABOUT: &str = "Combine the sections into the output file";
 const COMMAND_LONG_ABOUT: &str = "Iterates over all the sections folder path recursively and appends their contents to the output file on the specified order";
 
+const PAGE_BREAK: &str = "<div style=\"page-break-after: always;\"></div>";
+
 pub struct BuildCommand {}
 
 impl BuildCommand {
@@ -35,11 +37,13 @@ impl BuildCommand {
                     reason,
                     help: "Try running 'mdm sync' to create missing files".into(),
                 });
-            }/*  */
+            }
 
-            let header = section.get_section_header(depth);
-            writeln!(writer, "{}\n", header)
-                .map_err(|err| MDMError::from_io(err, &current_path))?;
+            if !section.skip_title {
+                let header = section.get_section_header(depth);
+                writeln!(writer, "{}\n", header)
+                    .map_err(|err| MDMError::from_io(err, &current_path))?;
+            }
 
             let read_path = if section.is_leaf() {
                 Some(current_path.clone())
@@ -53,10 +57,18 @@ impl BuildCommand {
                 let content = std::fs::read_to_string(&path)
                     .map_err(|err| MDMError::from_io(err, &path))?;
                 let processed_content = re.replace_all(&content, "./");
+
                 writer.write_all(processed_content.as_bytes())
                     .map_err(|err| MDMError::Other(err.to_string()))?;
                 writer.write_all(b"\n\n")
                     .map_err(|err| MDMError::Other(err.to_string()))?;
+
+                if section.skip_after {
+                    writeln!(writer, "{}", PAGE_BREAK)
+                        .map_err(|err| MDMError::from_io(err, &path))?;
+                    writer.write_all(b"\n")
+                        .map_err(|err| MDMError::Other(err.to_string()))?;
+                }
             };
 
             BuildCommand::sync_sections(
