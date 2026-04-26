@@ -104,11 +104,16 @@ impl SyncCommand {
             }
             if section.has_intro {
                 let intro_path = current_path.join("intro.md");
-                std::fs::write(&intro_path, "")
+                let is_intro_present = std::fs::metadata(&intro_path)
+                    .map(|m| m.is_file())
+                    .unwrap_or(false);
+                if !is_intro_present {
+                    std::fs::write(&intro_path, "")
                     .map_err(|e| MDMError::IO {
                         source: e,
                         path: intro_path.clone(),
                     })?;
+                }
                 admited_paths.push(intro_path);
             }
             
