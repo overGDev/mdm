@@ -1,6 +1,6 @@
 [package]
 name = "mdm"
-version = "1.0.2"
+version = "1.0.3"
 edition = "2024"
 repository = "https://github.com/overGDev/mdm"
 
@@ -8,7 +8,7 @@ repository = "https://github.com/overGDev/mdm"
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9.33"
 indexmap = { version = "2.14.0", features = ["serde"] }
-clap = { version = "4.6.0", features = ["cargo"]}
+clap = { version = "4.6.1", features = ["cargo"]}
 thiserror = "2.0.18"
 deunicode = "1.6.2"
 walkdir = "2.5.0"
