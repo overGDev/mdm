@@ -1,3 +1,8 @@
+# 0. DEFAULT BEHAVIOR (LEAF)
+# Result: creates "cover.md" and never outputs an automatic title
+- title: "Cover"
+  skip_title: true
+
 # 1. DEFAULT BEHAVIOR (LEAF)
 # Rule: Title becomes snake_case filename. 
 # Result: creates "project_scope.md"

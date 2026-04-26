@@ -17,6 +17,7 @@ pub struct RawSchemaSection {
     pub custom_id: Option<String>,
     pub has_intro: Option<bool>,
     pub skip_after: Option<bool>,
+    pub skip_title: Option<bool>,
     pub children: Option<Vec<RawSchemaSection>>,
 }
 
@@ -29,6 +30,7 @@ pub struct SchemaSection {
     pub custom_id: Option<String>,
     pub has_intro: bool,
     pub skip_after: bool,
+    pub skip_title: bool,
     pub children: Vec<SchemaSection>,
 }
 
@@ -155,6 +157,7 @@ impl TryFrom<RawSchemaSection> for SchemaSection {
         let custom_id = raw.custom_id.filter(|s| !s.trim().is_empty());
         let has_intro = raw.has_intro.unwrap_or(false);
         let skip_after = raw.skip_after.unwrap_or(true);
+        let skip_title = raw.skip_title.unwrap_or(false);
 
         let mut children = Vec::new();
         for raw_child in raw.children.unwrap_or_default() {
@@ -168,6 +171,7 @@ impl TryFrom<RawSchemaSection> for SchemaSection {
             custom_id,
             has_intro,
             skip_after,
+            skip_title,
             children,
         };
 
@@ -188,6 +192,7 @@ mod tests {
             custom_id: None,
             has_intro: false,
             skip_after: false,
+            skip_title: false,
             children: vec![],
         }
     }
