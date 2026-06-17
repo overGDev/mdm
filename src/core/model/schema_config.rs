@@ -35,7 +35,7 @@ pub struct SchemaSection {
 }
 
 impl SchemaSection {
-    fn normalize(input: &mut String, separator: char) {
+    fn normalize_file_name(input: &mut String, separator: char) {
         let deunicoded = deunicode::deunicode(input).to_lowercase();
         let mut last_was_separator = true;
         input.clear();
@@ -55,6 +55,28 @@ impl SchemaSection {
         }
     }
 
+    fn normalize_header_id(input: &mut String) {
+        let lowercased = input.to_lowercase();
+        let mut last_was_separator = true;
+        input.clear();
+
+        for c in lowercased.chars() {
+            if c.is_alphanumeric() {
+                input.push(c);
+                last_was_separator = false;
+            } else if c == '&' {
+                last_was_separator = false;
+            } else if !last_was_separator {
+                input.push('-');
+                last_was_separator = true;
+            }
+        }
+
+        if input.ends_with('-') {
+            input.pop();
+        }
+    }
+
     pub fn is_leaf(&self) -> bool {
         return self.children.is_empty()
     }
@@ -65,7 +87,7 @@ impl SchemaSection {
             .unwrap_or(&self.title)
             .to_string();
 
-        SchemaSection::normalize(&mut fs_name, '_');
+        SchemaSection::normalize_file_name(&mut fs_name, '_');
 
         if self.is_leaf() {
             fs_name.push_str(".md");
@@ -91,7 +113,7 @@ impl SchemaSection {
             .as_deref()
             .unwrap_or(&self.title)
             .to_string();
-        SchemaSection::normalize(&mut title_id, '-');
+        SchemaSection::normalize_header_id(&mut title_id);
         title_id
     }
 
@@ -305,6 +327,13 @@ mod tests {
             result_1.eq("- [Test](#test)") && result_2.eq("    - [Test](#test)"),
             "Parent nodes with intros should be valid"
         );
+    }
+
+    #[test]
+    fn header_id_preserves_unicode_glyphs() {
+        let mut node = mock_node();
+        node.title = "fun & cookiés".to_string();
+        assert_eq!(node.get_section_index(1), "- [fun & cookiés](#fun--cookiés)");
     }
 
     #[test]
