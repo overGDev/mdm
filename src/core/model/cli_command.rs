@@ -13,7 +13,7 @@ pub trait CliCommand {
     /// Orquestrates validation before running the command's custom functionality.
     fn execute(&self, ctx: CommandCtx) -> Result<(), MDMError> {
         if self.requires_paths() && ctx.config.is_none() {
-            panic!();
+            return Err(MDMError::MDMConfigNotFound);
         }
         self.run(ctx)?;
         Ok(())

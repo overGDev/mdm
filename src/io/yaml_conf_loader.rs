@@ -3,7 +3,7 @@ use std::{env, path::PathBuf};
 use indexmap::IndexMap;
 use serde::de::DeserializeOwned;
 
-use crate::core::{app::{ConfigFile, MDM_CONF_FOLDER_NAME}, error::MDMError, model::{ConfigLoader, MDMConfig, PathsConfig, SchemaSection, schema_config::SchemaConfig}};
+use crate::core::{app::{ConfigFile, MDM_CONF_FOLDER_NAME}, error::MDMError, model::{ConfigLoader, MDMConfig, PathsConfig, SchemaSection, Validable, schema_config::SchemaConfig}};
 
 pub struct YamlConfLoader {
     pub base_path: PathBuf,
@@ -60,6 +60,10 @@ impl ConfigLoader for YamlConfLoader {
         let mut paths: PathsConfig = self.config_from_file(
             ConfigFile::Paths.name()
         )?;
+        paths.validate().map_err(|e| MDMError::InvalidCommandState {
+            reason: e.into(),
+            help: "Fix 'mdm/paths.yaml' and try again".into(),
+        })?;
         paths.establish_root(&self.base_path);
 
         let raw_schema: Option<SchemaConfig> = self.config_from_file(
