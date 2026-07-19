@@ -28,6 +28,9 @@ pub enum MDMError {
     #[error("Command aborted: {reason}\n{help}")]
     InvalidCommandState { reason: String, help: String },
 
+    #[error("Command aborted: failed to create symlink at '{path}'\nOn Windows, enable Developer Mode (Settings > Update & Security > For developers) or run the command in an elevated shell, then try again")]
+    SymlinkPermissionDenied { path: std::path::PathBuf },
+
     #[error("{0}")]
     Other(String),
 }
