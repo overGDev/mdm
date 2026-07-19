@@ -3,6 +3,7 @@ use std::io::{Write, BufWriter};
 use std::path::{Component, Path, PathBuf};
 
 use clap::Command;
+use indexmap::IndexMap;
 use regex::{Captures, Regex};
 
 use crate::core::model::SchemaSection;
@@ -54,12 +55,42 @@ impl BuildCommand {
         }).into_owned())
     }
 
+    /// Substitutes every '{{var_name}}' placeholder with its value from 'mdm/vars.yaml'.
+    /// Fails the build if a referenced variable isn't defined, rather than shipping a
+    /// document with a literal unresolved placeholder in it.
+    fn substitute_variables(content: &str, vars: &IndexMap<String, String>, path: &Path) -> Result<String, MDMError> {
+        let re = Regex::new(r"\{\{\s*([A-Za-z0-9_]+)\s*\}\}")?;
+        let mut error = None;
+
+        let result = re.replace_all(content, |caps: &Captures| {
+            let var_name = &caps[1];
+            match vars.get(var_name) {
+                Some(value) => value.clone(),
+                None => {
+                    if error.is_none() {
+                        error = Some(MDMError::UndefinedVariable {
+                            var_name: var_name.to_string(),
+                            path: path.to_path_buf(),
+                        });
+                    }
+                    caps[0].to_string()
+                }
+            }
+        }).into_owned();
+
+        match error {
+            Some(e) => Err(e),
+            None => Ok(result),
+        }
+    }
+
     fn sync_sections(
         writer: &mut BufWriter<File>,
         sections: &[SchemaSection],
         base_path: &Path,
         assets_base: &Path,
         output_dir: &Path,
+        vars: &IndexMap<String, String>,
         depth: usize,
     ) -> Result<(), MDMError> {
         for section in sections {
@@ -94,11 +125,12 @@ impl BuildCommand {
                 let content = std::fs::read_to_string(&path)
                     .map_err(|err| MDMError::from_io(err, &path))?;
                 let relative_assets = Self::relative_path(output_dir, &assets_path);
-                let processed_content = Self::rewrite_asset_references(
+                let asset_resolved = Self::rewrite_asset_references(
                     &content,
                     &section.assets_link_name(),
                     &relative_assets,
                 )?;
+                let processed_content = Self::substitute_variables(&asset_resolved, vars, &path)?;
 
                 writer.write_all(processed_content.as_bytes())
                     .map_err(|err| MDMError::Other(err.to_string()))?;
@@ -114,7 +146,7 @@ impl BuildCommand {
             };
 
             BuildCommand::sync_sections(
-                writer, &section.children, &current_path, &assets_path, output_dir, depth + 1
+                writer, &section.children, &current_path, &assets_path, output_dir, vars, depth + 1
             )?;
         }
         Ok(())
@@ -158,7 +190,7 @@ impl CliCommand for BuildCommand {
             };
         let mut writer = BufWriter::new(output_file);
         BuildCommand::sync_sections(
-            &mut writer, &schema, &sections_path, &assets_path, output_dir, 1
+            &mut writer, &schema, &sections_path, &assets_path, output_dir, &config.vars, 1
         )?;
         println!("Successfully combined document at '{}'", config.paths.output.display());
         Ok(())

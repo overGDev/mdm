@@ -31,6 +31,9 @@ pub enum MDMError {
     #[error("Command aborted: failed to create symlink at '{path}'\nOn Windows, enable Developer Mode (Settings > Update & Security > For developers) or run the command in an elevated shell, then try again")]
     SymlinkPermissionDenied { path: std::path::PathBuf },
 
+    #[error("Command aborted: '{var_name}' referenced in '{path}' is not defined in 'mdm/vars.yaml'\nDefine it with 'mdm var set {var_name} <value>', or fix the typo")]
+    UndefinedVariable { var_name: String, path: std::path::PathBuf },
+
     #[error("{0}")]
     Other(String),
 }
