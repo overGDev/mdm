@@ -17,6 +17,111 @@ const SKIP_INDEX_FLAG_ID: &str = "skip-index";
 pub struct SyncCommand {}
 
 impl SyncCommand {
+    #[cfg(unix)]
+    fn create_symlink(target: &Path, link: &Path) -> std::io::Result<()> {
+        std::os::unix::fs::symlink(target, link)
+    }
+
+    #[cfg(windows)]
+    fn create_symlink(target: &Path, link: &Path) -> std::io::Result<()> {
+        std::os::windows::fs::symlink_dir(target, link)
+    }
+
+    #[cfg(unix)]
+    fn remove_symlink(link: &Path) -> std::io::Result<()> {
+        std::fs::remove_file(link)
+    }
+
+    #[cfg(windows)]
+    fn remove_symlink(link: &Path) -> std::io::Result<()> {
+        std::fs::remove_dir(link)
+    }
+
+    /// Creates a symlink at 'link' pointing to 'target', replacing it first if one
+    /// (possibly stale or dangling) already exists there, to keep 'sync' idempotent.
+    fn ensure_symlink(target: &Path, link: &Path) -> Result<(), MDMError> {
+        if std::fs::symlink_metadata(link).is_ok() {
+            Self::remove_symlink(link).map_err(|e| MDMError::IO {
+                source: e,
+                path: link.to_path_buf(),
+            })?;
+        }
+
+        Self::create_symlink(target, link).map_err(|e| {
+            if e.kind() == std::io::ErrorKind::PermissionDenied {
+                MDMError::SymlinkPermissionDenied { path: link.to_path_buf() }
+            } else {
+                MDMError::IO { source: e, path: link.to_path_buf() }
+            }
+        })
+    }
+
+    /// Mirrors the schema tree into the assets folder and links each section's
+    /// mirrored assets directory back into the sections tree, so authors can
+    /// reference their own section's images with a fixed, depth-independent path.
+    fn sync_assets(
+        admitted_sections_paths: &mut Vec<PathBuf>,
+        admitted_asset_dirs: &mut Vec<PathBuf>,
+        sections: &[SchemaSection],
+        sections_base: &Path,
+        assets_base: &Path,
+    ) -> Result<(), MDMError> {
+        for section in sections {
+            let assets_path = assets_base.join(section.fs_stem());
+            if !assets_path.exists() {
+                std::fs::create_dir_all(&assets_path).map_err(|e| MDMError::IO {
+                    source: e,
+                    path: assets_path.clone(),
+                })?;
+            }
+            admitted_asset_dirs.push(assets_path.clone());
+
+            let link_parent = if section.is_leaf() {
+                sections_base.to_path_buf()
+            } else {
+                sections_base.join(section.get_fs_name())
+            };
+            let link_path = link_parent.join(section.assets_link_name());
+
+            Self::ensure_symlink(&assets_path, &link_path)?;
+            admitted_sections_paths.push(link_path);
+
+            if !section.is_leaf() {
+                let child_sections_base = sections_base.join(section.get_fs_name());
+                Self::sync_assets(
+                    admitted_sections_paths,
+                    admitted_asset_dirs,
+                    &section.children,
+                    &child_sections_base,
+                    &assets_path,
+                )?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Prints a warning for every mirrored assets directory no longer referenced by the
+    /// schema, without deleting it — real images are never removed automatically.
+    fn warn_orphaned_assets(assets_path: &Path, admitted_asset_dirs: &[PathBuf]) -> Result<(), MDMError> {
+        if !assets_path.exists() {
+            return Ok(());
+        }
+        for entry in WalkDir::new(assets_path).min_depth(1) {
+            let dir_entry = entry.map_err(|e| MDMError::IO {
+                source: e.into(),
+                path: assets_path.to_path_buf(),
+            })?;
+            let path = dir_entry.path();
+            if path.is_dir() && !admitted_asset_dirs.contains(&path.to_path_buf()) {
+                println!(
+                    "Warning: '{}' is no longer referenced by the schema; preserved, not deleted",
+                    path.display()
+                );
+            }
+        }
+        Ok(())
+    }
+
     fn collect_index(
         sections: &[SchemaSection],
         base_path: &Path,
@@ -48,15 +153,19 @@ impl SyncCommand {
                 source: e.into(),
                 path: sections_path.to_path_buf(),
             })?;
-        
+
             let path = dir_entry.path();
-            if path.is_file() && !admited_paths.contains(&path.to_path_buf()) {
+            let is_symlink = dir_entry.path_is_symlink();
+            if (path.is_file() || is_symlink) && !admited_paths.contains(&path.to_path_buf()) {
                 println!("Removing: {}", path.display());
-                std::fs::remove_file(path)
-                    .map_err(|e| MDMError::IO {
-                        source: e,
-                        path: path.to_path_buf(),
-                    })?;
+                if is_symlink {
+                    Self::remove_symlink(path)
+                } else {
+                    std::fs::remove_file(path)
+                }.map_err(|e| MDMError::IO {
+                    source: e,
+                    path: path.to_path_buf(),
+                })?;
             }
         })
     }
@@ -166,17 +275,29 @@ impl CliCommand for SyncCommand {
             "Define a schema in your 'mdm/schema.yaml' file first",
         )?;
         let sections_path = config.paths.sections.as_ref();
+        let assets_path = config.paths.assets.as_ref();
 
         let mut admited_paths= vec![];
         let index_path = Self::sync_sections(
             &mut admited_paths,
-            schema, 
+            schema,
             sections_path,
         )?;
         println!("Successfully updated sections folder at: {}", sections_path.display());
 
+        let mut admitted_asset_dirs = vec![];
+        Self::sync_assets(
+            &mut admited_paths,
+            &mut admitted_asset_dirs,
+            schema,
+            sections_path,
+            assets_path,
+        )?;
+        println!("Successfully updated assets folder at: {}", assets_path.display());
+
         let clean = ctx.args.get_flag(CLEAN_FLAG_ID);
         if clean {
+            Self::warn_orphaned_assets(assets_path, &admitted_asset_dirs)?;
             Self::clean_sections(sections_path, admited_paths)?;
         }
 
