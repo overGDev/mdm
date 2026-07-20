@@ -81,19 +81,37 @@ impl SchemaSection {
         return self.children.is_empty()
     }
 
-    pub fn get_fs_name(&self) -> String {
-        let mut fs_name = self.alias
+    /// Normalized snake_case name for this section, without any file extension.
+    /// Shared basis for both the section's own filename/dirname and its assets mirror.
+    pub fn fs_stem(&self) -> String {
+        let mut stem = self.alias
             .as_deref()
             .unwrap_or(&self.title)
             .to_string();
 
-        SchemaSection::normalize_file_name(&mut fs_name, '_');
+        SchemaSection::normalize_file_name(&mut stem, '_');
+        stem
+    }
+
+    pub fn get_fs_name(&self) -> String {
+        let mut fs_name = self.fs_stem();
 
         if self.is_leaf() {
             fs_name.push_str(".md");
         }
 
         fs_name
+    }
+
+    /// Name of the symlink authors use to reference this section's mirrored assets folder.
+    /// Leaf sections get a sibling link ('<stem>.assets') since they have no directory of
+    /// their own; branch sections get an in-folder link named 'assets'.
+    pub fn assets_link_name(&self) -> String {
+        if self.is_leaf() {
+            format!("{}.assets", self.fs_stem())
+        } else {
+            "assets".to_string()
+        }
     }
 
     pub fn has_custom_id(&self) -> bool {
