@@ -23,6 +23,7 @@ fn main() {
     let app = clap::Command::new(APP_NAME)
         .about(APP_ABOUT)
         .long_about(APP_LONG_ABOUT)
+        .version(env!("CARGO_PKG_VERSION"))
         .load_subcommands(&subcommands);
 
     let matches = match app.get_cli_matches() {
