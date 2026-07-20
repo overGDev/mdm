@@ -73,6 +73,10 @@ As you can see, both conditions are fully Git and GitFlow compatible.
 
 MDM is distributed via **GitHub Releases**. You can download pre-built binaries for Windows, macOS, and Linux without needing to install Rust or compile the code manually.
 
+### Updating
+
+The install script also places a small companion program, `mdm-update`, next to the `mdm` binary. Run `mdm update` (an alias that just runs `mdm-update` for you) to check for and install the latest release in place. If you installed MDM before v1.3.0, re-run the install script once to pick up the updater.
+
 ### Dependencies
 
 #### git (Mandatory):
