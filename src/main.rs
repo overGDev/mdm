@@ -1,5 +1,5 @@
 use crate::{
-    commands::{BuildCommand, CheckCommand, InitCommand, SyncCommand, UpdateCommand, VarCommand}, core::{
+    commands::{BuildCommand, CheckCommand, InitCommand, PathsCommand, SyncCommand, UpdateCommand, VarCommand}, core::{
         app::{config_files::load_config, subcommand_from_matches::subcommand_from_matches}, ext::CommandExt, model::{CliCommand, CommandCtx, ConfigLoader}
     }, io::yaml_conf_loader::YamlConfLoader
 };
@@ -18,6 +18,7 @@ fn main() {
         Box::new(SyncCommand {}),
         Box::new(CheckCommand {}),
         Box::new(VarCommand {}),
+        Box::new(PathsCommand {}),
         Box::new(BuildCommand {}),
         Box::new(UpdateCommand {}),
     ];

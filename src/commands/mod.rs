@@ -6,6 +6,8 @@ pub mod list;
 pub mod set;
 pub mod get;
 pub mod unset;
+pub mod paths;
+pub mod paths_set;
 pub mod build;
 pub mod update;
 
@@ -17,5 +19,7 @@ pub use list::ListCommand;
 pub use set::SetCommand;
 pub use get::GetCommand;
 pub use unset::UnsetCommand;
+pub use paths::PathsCommand;
+pub use paths_set::PathsSetCommand;
 pub use build::BuildCommand;
 pub use update::UpdateCommand;
