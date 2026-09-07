@@ -1,6 +1,6 @@
 use crate::{
-    commands::{BuildCommand, CheckCommand, InitCommand, SyncCommand, UpdateCommand, VarCommand}, core::{
-        app::{config_files::load_config, subcommand_from_matches::subcommand_from_matches}, ext::CommandExt, model::{CliCommand, CommandCtx, ConfigLoader}
+    core::{
+        app::{build_app, config_files::load_config, subcommand_from_matches::subcommand_from_matches}, ext::CommandExt, model::{CommandCtx, ConfigLoader}
     }, io::yaml_conf_loader::YamlConfLoader
 };
 
@@ -8,24 +8,9 @@ pub mod commands;
 pub mod core;
 pub mod io;
 
-const APP_NAME: &str = "mdm";
-const APP_ABOUT: &str = "Manage documentation projects using Docs-as-Code workflows";
-const APP_LONG_ABOUT: &str = "MDM is a tool designed to manage documentation within version-controlled environments with Git. It streamlines the document lifecycle by providing a modular and flexible framework for handling the iterative growth of collaborative documents, such as technical documentation of services or applications";
-
 fn main() {
-    let subcommands: Vec<Box<dyn CliCommand>> = vec![
-        Box::new(InitCommand {}),
-        Box::new(SyncCommand {}),
-        Box::new(CheckCommand {}),
-        Box::new(VarCommand {}),
-        Box::new(BuildCommand {}),
-        Box::new(UpdateCommand {}),
-    ];
-    let app = clap::Command::new(APP_NAME)
-        .about(APP_ABOUT)
-        .long_about(APP_LONG_ABOUT)
-        .version(env!("CARGO_PKG_VERSION"))
-        .load_subcommands(&subcommands);
+    let subcommands = commands::all();
+    let app = build_app(&subcommands);
 
     let matches = match app.get_cli_matches() {
         Ok(m) => m,

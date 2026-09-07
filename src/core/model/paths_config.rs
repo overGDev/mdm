@@ -1,11 +1,11 @@
 use std::path::{Path, PathBuf};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::core::{app::MDM_CONF_FOLDER_NAME, model::Validable};
 
 /// Canonical, direct representation of the contents of the 'mdm/paths.yaml' file.
 /// Contains all the mdm paths that can be customized by the user.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct PathsConfig {
     pub sections: PathBuf,
     pub assets: PathBuf,
