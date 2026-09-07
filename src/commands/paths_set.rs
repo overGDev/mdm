@@ -131,6 +131,23 @@ impl CliCommand for PathsSetCommand {
             help: "Fix the provided value and try again".into(),
         })?;
 
+        let old_abs = match key.as_str() {
+            SECTIONS_KEY => &config.paths.sections,
+            ASSETS_KEY => &config.paths.assets,
+            OUTPUT_KEY => &config.paths.output,
+            _ => unreachable!("clap restricts KEY to a known set of values"),
+        };
+        let new_abs = config.root.join(new_value);
+        if old_abs.exists() && *old_abs != new_abs {
+            if let Some(parent) = new_abs.parent() {
+                std::fs::create_dir_all(parent)
+                    .map_err(|e| MDMError::IO { source: e, path: parent.to_path_buf() })?;
+            }
+            std::fs::rename(old_abs, &new_abs)
+                .map_err(|e| MDMError::IO { source: e, path: old_abs.clone() })?;
+            println!("Moved '{}' -> '{}'", old_abs.display(), new_abs.display());
+        }
+
         let content = serde_yaml::to_string(&new_paths)
             .map_err(|e| MDMError::Parse(e))?;
         let paths_yaml = config.root.join(ConfigFile::Paths.relative_path());
