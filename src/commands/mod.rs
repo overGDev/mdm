@@ -4,6 +4,8 @@ pub mod check;
 pub mod var;
 pub mod list;
 pub mod set;
+pub mod get;
+pub mod unset;
 pub mod build;
 pub mod update;
 
@@ -13,5 +15,7 @@ pub use check::CheckCommand;
 pub use var::VarCommand;
 pub use list::ListCommand;
 pub use set::SetCommand;
+pub use get::GetCommand;
+pub use unset::UnsetCommand;
 pub use build::BuildCommand;
 pub use update::UpdateCommand;
