@@ -10,6 +10,7 @@ pub mod paths;
 pub mod paths_set;
 pub mod build;
 pub mod update;
+pub mod completions;
 
 pub use init::InitCommand;
 pub use sync::SyncCommand;
@@ -23,3 +24,21 @@ pub use paths::PathsCommand;
 pub use paths_set::PathsSetCommand;
 pub use build::BuildCommand;
 pub use update::UpdateCommand;
+pub use completions::CompletionsCommand;
+
+use crate::core::model::CliCommand;
+
+/// All top-level subcommands mdm exposes, shared by 'main' (to build the CLI) and the
+/// 'completions' command (to generate scripts from the exact same command tree).
+pub fn all() -> Vec<Box<dyn CliCommand>> {
+    vec![
+        Box::new(InitCommand {}),
+        Box::new(SyncCommand {}),
+        Box::new(CheckCommand {}),
+        Box::new(VarCommand {}),
+        Box::new(PathsCommand {}),
+        Box::new(BuildCommand {}),
+        Box::new(UpdateCommand {}),
+        Box::new(CompletionsCommand {}),
+    ]
+}
