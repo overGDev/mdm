@@ -1,6 +1,6 @@
 use clap::{Arg, ArgAction, Command};
 
-use crate::core::{app::{ConfigFile, MDM_CONF_FOLDER_NAME}, error::MDMError, model::{CliCommand, CommandCtx}};
+use crate::{commands::var::write_vars, core::{error::MDMError, model::{CliCommand, CommandCtx}}};
 
 const COMMAND_NAME: &str = "set";
 const COMMAND_ABOUT: &str = "Set the value of a variable inside of 'mdm/vars.yaml'";
@@ -67,16 +67,7 @@ impl CliCommand for SetCommand {
         }
 
         new_vars.insert(provided_key.clone(), provided_value.clone());
-        let content = serde_yaml::to_string(&new_vars)
-            .map_err(|e| MDMError::Parse(e))?;
-        let vars_path = config.root
-            .join(MDM_CONF_FOLDER_NAME)
-            .join(ConfigFile::Vars.name());
-        std::fs::write(&vars_path, content)
-            .map_err(|e| MDMError::IO {
-                source: e,
-                path: vars_path,
-            })?;
+        write_vars(config, &new_vars)?;
         Ok(())
     }
 }
