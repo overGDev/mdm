@@ -1,7 +1,7 @@
 use clap::Command;
 use indexmap::IndexMap;
 
-use crate::{commands::{GetCommand, ListCommand, SetCommand, UnsetCommand}, core::{app::{subcommand_from_matches::subcommand_from_matches, ConfigFile, MDM_CONF_FOLDER_NAME}, error::MDMError, ext::CommandExt, model::{CliCommand, CommandCtx, MDMConfig}}};
+use crate::{commands::{GetCommand, ListCommand, SetCommand, UnsetCommand}, core::{app::{subcommand_from_matches::subcommand_from_matches, ConfigFile}, error::MDMError, ext::CommandExt, model::{CliCommand, CommandCtx, MDMConfig}}};
 
 const COMMAND_NAME: &str = "var";
 const COMMAND_ABOUT: &str = "Subcommand to access variable operations";
@@ -23,9 +23,7 @@ impl VarCommand {
 pub(super) fn write_vars(config: &MDMConfig, vars: &IndexMap<String, String>) -> Result<(), MDMError> {
     let content = serde_yaml::to_string(vars)
         .map_err(|e| MDMError::Parse(e))?;
-    let vars_path = config.root
-        .join(MDM_CONF_FOLDER_NAME)
-        .join(ConfigFile::Vars.name());
+    let vars_path = config.root.join(ConfigFile::Vars.relative_path());
     std::fs::write(&vars_path, content)
         .map_err(|e| MDMError::IO {
             source: e,

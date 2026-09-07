@@ -1,9 +1,12 @@
+use std::path::PathBuf;
+
 use crate::core::{error::MDMError, model::{ConfigLoader, MDMConfig}};
 
 pub enum ConfigFile {
     Schema,
     Paths,
     Vars,
+    Workflow,
 }
 
 impl ConfigFile {
@@ -12,6 +15,17 @@ impl ConfigFile {
             Self::Schema => "schema.yaml",
             Self::Paths => "paths.yaml",
             Self::Vars => "vars.yaml",
+            Self::Workflow => "mdm-build.yml",
+        }
+    }
+
+    /// Path to this file, relative to the project's root (i.e. the parent of 'mdm/').
+    pub fn relative_path(&self) -> PathBuf {
+        match self {
+            Self::Schema | Self::Paths | Self::Vars => {
+                PathBuf::from(MDM_CONF_FOLDER_NAME).join(self.name())
+            }
+            Self::Workflow => PathBuf::from(".github/workflows").join(self.name()),
         }
     }
 
@@ -20,11 +34,12 @@ impl ConfigFile {
             Self::Schema => include_str!("../../samples/schema.yaml"),
             Self::Paths => include_str!("../../samples/paths.yaml"),
             Self::Vars => include_str!("../../samples/vars.yaml"),
+            Self::Workflow => include_str!("../../samples/mdm-build.yml"),
         }
     }
 
-    pub fn all() -> [Self; 3] {
-        [Self::Schema, Self::Paths, Self::Vars]
+    pub fn all() -> [Self; 4] {
+        [Self::Schema, Self::Paths, Self::Vars, Self::Workflow]
     }
 }
 

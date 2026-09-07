@@ -177,6 +177,8 @@ impl CliCommand for BuildCommand {
         let sections_path = config.paths.sections.as_ref();
         let assets_path = config.paths.assets.as_ref();
         let output_dir = config.paths.output.parent().unwrap_or_else(|| Path::new("."));
+        std::fs::create_dir_all(output_dir)
+            .map_err(|e| MDMError::IO { source: e, path: output_dir.to_path_buf() })?;
         let output_file = match OpenOptions::new()
             .truncate(true)
             .create(true)
