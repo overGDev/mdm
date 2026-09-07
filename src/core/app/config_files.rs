@@ -7,6 +7,7 @@ pub enum ConfigFile {
     Paths,
     Vars,
     Workflow,
+    ClaudeMd,
 }
 
 impl ConfigFile {
@@ -16,6 +17,7 @@ impl ConfigFile {
             Self::Paths => "paths.yaml",
             Self::Vars => "vars.yaml",
             Self::Workflow => "mdm-build.yml",
+            Self::ClaudeMd => "CLAUDE.md",
         }
     }
 
@@ -26,6 +28,7 @@ impl ConfigFile {
                 PathBuf::from(MDM_CONF_FOLDER_NAME).join(self.name())
             }
             Self::Workflow => PathBuf::from(".github/workflows").join(self.name()),
+            Self::ClaudeMd => PathBuf::from(self.name()),
         }
     }
 
@@ -35,11 +38,12 @@ impl ConfigFile {
             Self::Paths => include_str!("../../samples/paths.yaml"),
             Self::Vars => include_str!("../../samples/vars.yaml"),
             Self::Workflow => include_str!("../../samples/mdm-build.yml"),
+            Self::ClaudeMd => include_str!("../../samples/CLAUDE.md"),
         }
     }
 
-    pub fn all() -> [Self; 4] {
-        [Self::Schema, Self::Paths, Self::Vars, Self::Workflow]
+    pub fn all() -> [Self; 5] {
+        [Self::Schema, Self::Paths, Self::Vars, Self::Workflow, Self::ClaudeMd]
     }
 }
 
