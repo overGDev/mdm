@@ -15,7 +15,6 @@ This project's documentation is managed with [mdm](https://github.com/overGDev/m
 - **Adding, renaming, or reordering a section**: edit `mdm/schema.yaml`, then run `mdm sync` to create or rename the corresponding file under `sections/`. Write the actual content there.
 - **Changing a variable**: use `mdm var set <key> <value>` (or `get`/`unset`/`list`), never hand-edit `mdm/vars.yaml`.
 - **Moving where sections, assets, or the output file live**: use `mdm paths set <sections|assets|output> <value>`. It moves the real files and keeps `.gitignore`/CI in sync; a manual `mv` will not.
-- **Previewing the combined document**: run `mdm build` locally. This isn't required before pushing: the CI workflow rebuilds and commits the output on every branch push.
 
 ## Boundaries
 
