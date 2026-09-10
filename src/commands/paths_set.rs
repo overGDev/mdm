@@ -6,7 +6,7 @@ use crate::core::{app::ConfigFile, error::MDMError, model::{CliCommand, CommandC
 
 const COMMAND_NAME: &str = "set";
 const COMMAND_ABOUT: &str = "Change one of the paths mdm uses, defined in 'mdm/paths.yaml'";
-const COMMAND_LONG_ABOUT: &str = "Updates the given path in 'mdm/paths.yaml'. When changing 'sections', the matching entries in '.gitignore' are rewritten to match. When changing 'output', both '.gitignore' and '.github/workflows/mdm-build.yml' (if present) are rewritten to match";
+const COMMAND_LONG_ABOUT: &str = "Updates the given path in 'mdm/paths.yaml'. When changing 'sections', the matching entries in '.gitignore' are rewritten to match. When changing 'output', '.gitignore', '.github/workflows/mdm-build.yml', and '.githooks/pre-commit' (whichever are present) are rewritten to match";
 
 const KEY_ARG_ID: &str = "key";
 const VALUE_ARG_ID: &str = "value";
@@ -176,6 +176,11 @@ impl CliCommand for PathsSetCommand {
                 &config.root.join(ConfigFile::Workflow.relative_path()),
                 "# mdm:output-path",
                 vec![format!("  MDM_OUTPUT_PATH: \"{}\"", Self::to_slash_string(Path::new(new_value)))],
+            )?;
+            Self::patch_marked_file(
+                &config.root.join(ConfigFile::PreCommitHook.relative_path()),
+                "# mdm:output-path",
+                vec![format!("OUTPUT_FILE=\"{}\"", Self::to_slash_string(Path::new(new_value)))],
             )?;
         }
 

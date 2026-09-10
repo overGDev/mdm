@@ -9,7 +9,7 @@ use crate::core::{
 
 const COMMAND_NAME: &str = "init";
 const COMMAND_ABOUT: &str = "Initialize a new document project workspace";
-const COMMAND_LONG_ABOUT: &str = "Sets up the necessary directory structure and generates default configuration files for the project, including a '.github/workflows/mdm-build.yml' CI workflow that rebuilds the document on every push to 'main' or 'develop' (skip it with --no-cicd). It creates all required reserved files in the specified workspace. If these files already exist, the command will abort to prevent data loss, unless the --force flag is used to overwrite them";
+const COMMAND_LONG_ABOUT: &str = "Sets up the necessary directory structure and generates default configuration files for the project, including a '.github/workflows/mdm-build.yml' CI workflow that rebuilds the document on every push to 'main' or 'develop' (skip it with --no-cicd), and a '.githooks/pre-commit' hook that blocks committing the output file by hand, enabled via 'core.hooksPath'. It creates all required reserved files in the specified workspace. If these files already exist, the command will abort to prevent data loss, unless the --force flag is used to overwrite them";
 
 const WORKDIR_ARG_ID: &str = "workdir";
 const FORCE_FLAG_ID: &str = "force";
@@ -18,31 +18,39 @@ const NO_CICD_FLAG_ID: &str = "no-cicd";
 pub struct InitCommand {}
 
 impl InitCommand {
-    fn execute_git_init(workdir: &Path) -> Result<(), MDMError> {
+    fn run_git(workdir: &Path, args: &[&str], failure_reason: &str) -> Result<(), MDMError> {
         match std::process::Command::new("git")
-            .arg("init")
+            .args(args)
             .current_dir(workdir)
             .status() {
             Ok(exit_status) if exit_status.success() => Ok(()),
             Ok(_) => {
-                return Err(MDMError::InvalidCommandState {
-                    reason: "Git initialization failed".into(),
+                Err(MDMError::InvalidCommandState {
+                    reason: failure_reason.into(),
                     help: "Ensure you have permissions to write in the target directory".into(),
                 })
             }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                return Err(MDMError::InvalidCommandState {
+                Err(MDMError::InvalidCommandState {
                     reason: "Git command not found".into(),
                     help: "Please install Git and ensure it is available in your PATH".into(),
                 })
             }
             Err(error) => {
-                return Err(MDMError::IO {
+                Err(MDMError::IO {
                     source: error,
                     path: workdir.to_path_buf(),
                 })
             }
         }
+    }
+
+    fn execute_git_init(workdir: &Path) -> Result<(), MDMError> {
+        Self::run_git(workdir, &["init"], "Git initialization failed")
+    }
+
+    fn enable_hooks_path(workdir: &Path) -> Result<(), MDMError> {
+        Self::run_git(workdir, &["config", "core.hooksPath", ".githooks"], "Enabling the pre-commit hook failed")
     }
 
     fn add_to_gitignore(workdir: &Path) -> Result<(), MDMError> {
@@ -70,6 +78,23 @@ impl InitCommand {
             path: gitignore_path,
         })?;
 
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    fn make_executable(path: &Path) -> Result<(), MDMError> {
+        use std::os::unix::fs::PermissionsExt;
+
+        let mut permissions = std::fs::metadata(path)
+            .map_err(|e| MDMError::IO { source: e, path: path.to_path_buf() })?
+            .permissions();
+        permissions.set_mode(permissions.mode() | 0o111);
+        std::fs::set_permissions(path, permissions)
+            .map_err(|e| MDMError::IO { source: e, path: path.to_path_buf() })
+    }
+
+    #[cfg(not(unix))]
+    fn make_executable(_path: &Path) -> Result<(), MDMError> {
         Ok(())
     }
 }
@@ -138,8 +163,12 @@ impl CliCommand for InitCommand {
             std::fs::write(&path, file.sample_content())
                 .map_err(|e| MDMError::IO {
                     source: e,
-                    path: path,
+                    path: path.clone(),
                 })?;
+
+            if matches!(file, ConfigFile::PreCommitHook) {
+                InitCommand::make_executable(&path)?;
+            }
         }
 
         let git_folder = workdir.join(".git");
@@ -151,6 +180,7 @@ impl CliCommand for InitCommand {
             InitCommand::execute_git_init(workdir)?;
         }
         InitCommand::add_to_gitignore(workdir)?;
+        InitCommand::enable_hooks_path(workdir)?;
         Ok(())
     }
 }
