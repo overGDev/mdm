@@ -8,6 +8,7 @@ pub enum ConfigFile {
     Vars,
     Workflow,
     ClaudeMd,
+    PreCommitHook,
 }
 
 impl ConfigFile {
@@ -18,6 +19,7 @@ impl ConfigFile {
             Self::Vars => "vars.yaml",
             Self::Workflow => "mdm-build.yml",
             Self::ClaudeMd => "CLAUDE.md",
+            Self::PreCommitHook => "pre-commit",
         }
     }
 
@@ -29,6 +31,7 @@ impl ConfigFile {
             }
             Self::Workflow => PathBuf::from(".github/workflows").join(self.name()),
             Self::ClaudeMd => PathBuf::from(self.name()),
+            Self::PreCommitHook => PathBuf::from(".githooks").join(self.name()),
         }
     }
 
@@ -39,11 +42,12 @@ impl ConfigFile {
             Self::Vars => include_str!("../../samples/vars.yaml"),
             Self::Workflow => include_str!("../../samples/mdm-build.yml"),
             Self::ClaudeMd => include_str!("../../samples/CLAUDE.md"),
+            Self::PreCommitHook => include_str!("../../samples/pre-commit"),
         }
     }
 
-    pub fn all() -> [Self; 5] {
-        [Self::Schema, Self::Paths, Self::Vars, Self::Workflow, Self::ClaudeMd]
+    pub fn all() -> [Self; 6] {
+        [Self::Schema, Self::Paths, Self::Vars, Self::Workflow, Self::ClaudeMd, Self::PreCommitHook]
     }
 }
 
