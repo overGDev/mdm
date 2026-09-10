@@ -9,7 +9,7 @@ use crate::core::{
 
 const COMMAND_NAME: &str = "init";
 const COMMAND_ABOUT: &str = "Initialize a new document project workspace";
-const COMMAND_LONG_ABOUT: &str = "Sets up the necessary directory structure and generates default configuration files for the project, including a '.github/workflows/mdm-build.yml' CI workflow that rebuilds the document on every push (skip it with --no-cicd). It creates all required reserved files in the specified workspace. If these files already exist, the command will abort to prevent data loss, unless the --force flag is used to overwrite them";
+const COMMAND_LONG_ABOUT: &str = "Sets up the necessary directory structure and generates default configuration files for the project, including a '.github/workflows/mdm-build.yml' CI workflow that rebuilds the document on every push to 'main' or 'develop' (skip it with --no-cicd). It creates all required reserved files in the specified workspace. If these files already exist, the command will abort to prevent data loss, unless the --force flag is used to overwrite them";
 
 const WORKDIR_ARG_ID: &str = "workdir";
 const FORCE_FLAG_ID: &str = "force";
