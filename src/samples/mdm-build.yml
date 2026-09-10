@@ -86,5 +86,5 @@ jobs:
           fi
 
           if [ "$MDM_AUTO_MERGE" = "true" ]; then
-            gh pr merge "$pr_number" --squash --auto
+            gh pr merge "$pr_number" --merge --auto
           fi
